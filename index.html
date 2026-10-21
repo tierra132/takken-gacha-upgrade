@@ -162,7 +162,7 @@ body:not(.owner) .gear,body:not(.owner) #adminBtn{display:none!important}
 <div class="app">
   <div class="debugBanner">🧪 デバッグ版</div>
   
-  <header class="head"><div class="appVersion">ver.5.1.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
+  <header class="head"><div class="appVersion">ver.5.2.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
 
   <section class="status">
     <div class="stat"><div class="label">🎫 ガチャ可能回数</div><div class="value" id="tickets">0枚</div></div>
@@ -217,7 +217,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/fireba
 import {
   getFirestore, doc, getDoc, setDoc, deleteDoc, runTransaction, collection, getDocs
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
-import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getAuth, onAuthStateChanged, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCjZ19wUhYKssy4cLCVtCdxyn6YvS0Vi2I",
@@ -995,7 +995,7 @@ async function init(){
 setInterval(()=>{if(cloudReady)refreshCloud().catch(console.error);},60000);
 
 /* ===== v44: IDログイン + ユーザーごとのデータ（デバッグ版） ===== */
-const OWNER_EMAIL="i.shou4338@gmail.com";   // ← 管理者（あなた）のGoogleアカウントに書き換え
+const ADMIN_LOGIN_PASSWORD="takken1018"; // 管理者ログイン用パスワード
 const DATA_COLLECTIONS={shared:"devShared",user:"devData",links:"devLinks",profiles:"devUsers",legacy:"devState"};
 const SHARED_REF=doc(db,DATA_COLLECTIONS.shared,"main");
 const SH_KEYS=["tables","gachas","materials","exchangeShop","examDate","resetTime","missionCfg","presets","gachaPassword"];
@@ -1025,38 +1025,41 @@ const rid=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>"abcdefghj
 const okId=s=>/^[a-z0-9_-]{3,24}$/.test(s);
 function gateHtml(inner){authGate.className="show";authGate.innerHTML=`<div class="gBox"><img class="logo" src="icon-512.png" alt="" onerror="this.style.display='none'"><h1>宅建がちゃ</h1>${inner}</div>`}
 function showId(msg){
-  gateHtml(`<p>${msg||"ユーザー名を登録、または入力してください。<br>同じIDでログインすると同じデータを開きます。"}</p><input id="gId" maxlength="24" autocapitalize="none" autocomplete="username" placeholder="ユーザーID（英数字）"><input id="gName" maxlength="12" autocomplete="nickname" placeholder="表示名（新規登録時・任意）"><button id="gGo" class="gBtn">登録・ログイン</button><p class="note">IDは3〜24文字の英数字・「-」「_」。IDを知っている人は同じデータに入れる簡易方式です。</p><button id="gAdm" class="gLink">管理者ログイン</button>`);
+  gateHtml(`<p>${msg||"ユーザーIDとパスワードを入力してください。"}</p><input id="gId" maxlength="24" autocapitalize="none" autocomplete="username" placeholder="ユーザーID（英数字）"><input id="gPass" type="password" maxlength="64" autocomplete="current-password" placeholder="パスワード"><input id="gName" maxlength="12" autocomplete="nickname" placeholder="表示名（新規登録時・任意）"><button id="gGo" class="gBtn">登録・ログイン</button><p class="note">初めてのIDは登録され、次回から同じIDとパスワードでログインできます。</p><button id="gAdm" class="gLink">管理者ログイン</button>`);
   const i=document.getElementById("gId");i.onkeydown=e=>{if(e.key==="Enter")idLogin()};
   document.getElementById("gGo").onclick=idLogin;document.getElementById("gAdm").onclick=adminLogin;
 }
 async function idLogin(){
   const id=lcs(document.getElementById("gId").value.trim());
+  const password=document.getElementById("gPass").value;
   const name=(document.getElementById("gName").value.trim().slice(0,12)||id);
   if(!okId(id)){showId("IDは英数字・「-」「_」の3〜24文字です。");return}
+  if(password.length<4){showId("パスワードは4文字以上で入力してください。");return}
   try{
     const p=await getDoc(profRef(id));
     if(!p.exists()){
-      await setDoc(profRef(id),{name,createdAt:Date.now(),createdBy:"self"});
+      await setDoc(profRef(id),{name,password,createdAt:Date.now(),createdBy:"self"});
       await setDoc(userRefFor(id),{} ,{merge:true});
       await setDoc(linkRef(me.uid),{id});begin(id,name);return;
     }
-    await setDoc(linkRef(me.uid),{id});begin(id,p.data().name||name);
+    const profile=p.data();
+    // 昨日までの旧版で作成したパスワード未設定アカウントは、初回ログイン時に入力したパスワードを登録する
+    if(!profile.password){await setDoc(profRef(id),{password,name:profile.name||name,passwordSetAt:Date.now()},{merge:true});}
+    else if(profile.password!==password){showId("ユーザーIDまたはパスワードが違います。");return}
+    await setDoc(linkRef(me.uid),{id});begin(id,profile.name||name);
   }catch(e){console.warn(e);showId("登録・ログインできませんでした（"+escapeHtml(e.code||e.message)+"）。Firebaseのルールと接続を確認してください。")}
 }
 async function adminLogin(){
-  const p=new GoogleAuthProvider();p.setCustomParameters({prompt:"select_account"});
-  try{await signInWithPopup(auth,p)}catch(e){if(e.code==="auth/popup-blocked")await signInWithRedirect(auth,p);else if(!/popup-closed|cancelled/.test(e.code||""))showId("管理者ログインできませんでした（"+escapeHtml(e.code||e.message)+"）")}
+  gateHtml(`<p>管理者パスワードを入力してください。</p><input id="gAdminPass" type="password" autocomplete="current-password" placeholder="管理者パスワード"><button id="gAdminGo" class="gBtn">管理者としてログイン</button><button id="gBack" class="gLink">戻る</button>`);
+  document.getElementById("gAdminGo").onclick=async()=>{
+    if(document.getElementById("gAdminPass").value!==ADMIN_LOGIN_PASSWORD){showId("管理者パスワードが違います。");return}
+    isOwner=true;try{await importLegacy();const last=localStorage.getItem("ownerId");if(last){const p=await getDoc(profRef(last));if(p.exists()){begin(last,p.data().name);return}}showPicker()}catch(e){console.warn(e);showPicker()}
+  };
+  document.getElementById("gBack").onclick=()=>showId();
 }
 onAuthStateChanged(auth,async u=>{
   me=u;
   if(!u){signInAnonymously(auth).catch(e=>gateHtml(`<p>ログインを開始できません。<br>Firebaseの Authentication で「匿名」を有効にしてください。<br><small>${escapeHtml(e.code||"")}</small></p>`));return}
-  if(!u.isAnonymous){
-    if(OWNER_EMAIL.includes("ここに")||lcs(u.email)!==lcs(OWNER_EMAIL)){gateHtml(`<p>このアカウントは管理者ではありません。<br><small>（管理者のメール設定 OWNER_EMAIL も確認してください）</small></p><button id="gOut" class="gBtn sub">戻る</button>`);document.getElementById("gOut").onclick=()=>signOut(auth);return}
-    isOwner=true;await importLegacy();
-    const last=localStorage.getItem("ownerId");
-    if(last){try{const p=await getDoc(profRef(last));if(p.exists()){begin(last,p.data().name);return}}catch(e){console.warn(e)}}
-    showPicker();return;
-  }
   isOwner=false;
   try{const l=await getDoc(linkRef(u.uid));if(l.exists()){const p=await getDoc(profRef(l.data().id));if(p.exists()){begin(l.data().id,p.data().name);return}await deleteDoc(linkRef(u.uid))}}catch(e){console.warn(e)}
   showId();
@@ -1066,7 +1069,7 @@ function begin(id,name){
   if(isOwner)localStorage.setItem("ownerId",id);
   authGate.className="";authGate.innerHTML="";document.body.classList.toggle("owner",isOwner);
   document.querySelector(".app").insertAdjacentHTML("beforeend",`<div id="whoami" class="whoami">プレイ中：<b>${escapeHtml(ACTIVE_NAME)}</b>（${escapeHtml(id)}）${isOwner?' ・ <button id="gSwitch">ユーザー切替</button>':""} ・ <button id="gSignOut">ログアウト</button></div>`);
-  document.getElementById("gSignOut").onclick=async()=>{if(!confirm("ログアウトしますか？"))return;try{localStorage.removeItem("ownerId");if(isOwner)await signOut(auth);else await deleteDoc(linkRef(me.uid))}catch(e){console.warn(e)}location.reload()};
+  document.getElementById("gSignOut").onclick=async()=>{if(!confirm("ログアウトしますか？"))return;try{localStorage.removeItem("ownerId");if(isOwner){isOwner=false;await signOut(auth)}else await deleteDoc(linkRef(me.uid))}catch(e){console.warn(e)}location.reload()};
   const sw=document.getElementById("gSwitch");if(sw)sw.onclick=()=>{localStorage.removeItem("ownerId");location.reload()};
   if(!authStarted){authStarted=true;init()}
 }
