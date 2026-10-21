@@ -145,12 +145,24 @@ button{font-family:inherit;transition:transform .12s,filter .12s}button:active:n
 .overlay{backdrop-filter:blur(4px);background:#0f1b3d99}.modal{border-radius:26px;box-shadow:0 20px 50px #0006;animation:pop .35s ease}
 .modal .singleBtn,.modal .ok{background:linear-gradient(135deg,#2f6fed,#1d3a8a);border-radius:14px;padding:14px}
 .chip,.seg button{transition:.15s}
+
+/* v44: login gate */
+#authGate{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;overflow:auto;background:radial-gradient(circle at 80% 0,#4f86ff55,transparent 55%),linear-gradient(160deg,#0f1b3d,#1d3a8a);color:#fff;text-align:center}
+#authGate.show{display:flex}.gBox{width:min(360px,100%)}.gBox .logo{width:104px;height:104px;border-radius:26px;box-shadow:0 12px 30px #0008;margin-bottom:12px}
+.gBox h1{margin:0 0 14px;font-size:28px;color:#fff}.gBox p{color:#d3deff;font-size:14px;line-height:1.8;margin:0 0 18px}
+.gBox input{width:100%;padding:15px;border-radius:14px;border:0;font-size:18px;text-align:center;margin-bottom:12px;background:#fff;color:#20242a}
+.gBtn{width:100%;border:0;border-radius:16px;padding:16px;font-size:16px;font-weight:900;background:#fff;color:#1d3a8a;box-shadow:0 8px 0 #0003}.gBtn.sub{background:#ffffff26;color:#fff;box-shadow:none}
+.gLink{background:none;border:0;color:#9fb3ee;text-decoration:underline;margin-top:18px;font-size:12px}
+.gList{text-align:left;background:#ffffff14;border-radius:14px;padding:4px 12px;margin-bottom:6px}.gBox .logRow{border-color:#ffffff26;color:#fff}.gBox .logRow button{background:#ffffff26;color:#fff}.gBox .inl label{color:#c9d6ff;text-align:left}.gBox .inl input{font-size:14px;padding:10px;margin:4px 0 0}.gBox .note{color:#9fb3ee;font-size:11px}
+body:not(.owner) .gear,body:not(.owner) #adminBtn{display:none!important}
+.whoami{text-align:center;font-size:11px;color:#7a8396;margin-top:20px}.whoami button{border:0;background:none;color:#2f6fed;font-weight:800;font-size:11px;text-decoration:underline}
 </style>
 </head>
 <body>
 <div class="app">
+  <div class="debugBanner">🧪 デバッグ版</div>
   
-  <header class="head"><div class="appVersion">ver.3.1.0</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
+  <header class="head"><div class="appVersion">ver.5.1.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
 
   <section class="status">
     <div class="stat"><div class="label">🎫 ガチャ可能回数</div><div class="value" id="tickets">0枚</div></div>
@@ -203,8 +215,9 @@ setTimeout(()=>{
 window.__takkenGachaModuleStarted=true;
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import {
-  getFirestore, doc, getDoc, setDoc, deleteDoc, runTransaction
+  getFirestore, doc, getDoc, setDoc, deleteDoc, runTransaction, collection, getDocs
 } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyCjZ19wUhYKssy4cLCVtCdxyn6YvS0Vi2I",
@@ -217,14 +230,14 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-const STATE_REF = doc(db, "app", "state");
+const STATE_REF = doc(db, "app", "devState");
 
 const ADMIN_PASSWORD = "takken261018";
 const DEFAULT_GACHA_PASSWORD = "yuki329";
-const DEBUG_MODE = false;
+const DEBUG_MODE = true;
 const DEFAULT_RESET_TIME = "06:00";
-const KEY="takken_gacha_v2";
-const OLD_KEY="takken_gacha_v1";
+let KEY="takken_gacha_dev_v2";
+let OLD_KEY="takken_gacha_dev_v1";
 
 const DEFAULT_TABLES={
   red:[["N","",72,"",0],["R","",20,"",0],["SR","",5,"",0],["SSR","",2,"",0],["UR","",1,"",0]],
@@ -400,18 +413,18 @@ async function ensureCloudState(){
   setCloudStatus("☁️ Firebase接続中…");
   const seed=readLocalSeed();
   const result=await withTimeout(runTransaction(db,async tx=>{
-    const snap=await tx.get(STATE_REF);
+    const snap=await readTx(tx);
     if(snap.exists()){
       const rawCurrent=snap.data();
       const current=normalizeState(rawCurrent);
       const changed=applyStudyDayReset(current);
       const normalizedRewards=JSON.stringify(toFirestoreState(current).rewards||[]);
       const rawRewards=JSON.stringify(rawCurrent.rewards||[]);
-      if(changed||normalizedRewards!==rawRewards)tx.set(STATE_REF,toFirestoreState(current));
+      if(changed||normalizedRewards!==rawRewards)writeTx(tx,toFirestoreState(current));
       return current;
     }
     applyStudyDayReset(seed);
-    tx.set(STATE_REF,toFirestoreState(seed));
+    writeTx(tx,toFirestoreState(seed));
     return seed;
   }),10000,"Firebase接続");
   state=normalizeState(result);
@@ -422,7 +435,7 @@ async function ensureCloudState(){
 }
 
 async function refreshCloud(){
-  const snap=await withTimeout(getDoc(STATE_REF),8000,"Firebase接続");
+  const snap=await withTimeout(readMerged(),8000,"Firebase接続");
   if(!snap.exists()){
     await ensureCloudState();
     return;
@@ -448,10 +461,10 @@ async function refreshCloud(){
 async function updateCloud(mutator){
   if(!cloudReady)throw new Error("Firebaseに接続できていません");
   const result=await runTransaction(db,async tx=>{
-    const snap=await tx.get(STATE_REF);
+    const snap=await readTx(tx);
     const current=normalizeState(snap.exists()?snap.data():state);
     const base=normalizeState(current);applyStudyDayReset(base);const updated=normalizeState(await mutator(base));
-    tx.set(STATE_REF,toFirestoreState(updated));
+    writeTx(tx,toFirestoreState(updated));
     return updated;
   });
   state=normalizeState(result);
@@ -543,7 +556,7 @@ async function doDraw(type,count){
   closeModal();
   try{
     const result=await runTransaction(db,async tx=>{
-      const snap=await tx.get(STATE_REF);
+      const snap=await readTx(tx);
       const s=normalizeState(snap.exists()?snap.data():state);
       if(s.tickets<count)throw new Error("NOT_ENOUGH_TICKETS");
       if(!isGachaOpen(type,s.gachas[type]))throw new Error("GACHA_CLOSED");
@@ -587,7 +600,7 @@ async function doDraw(type,count){
           s.rewards.push({id:makeId("rew"),time,dateKey,type,sourceType:"gacha",sourceName:gachaName,gachaName,rarity:x.rarity,reward:x.reward,materialId:String(x.materialId||""),materialQty:Math.max(0,Number(x.materialQty)||0),tableIndex:Number.isInteger(Number(x.tableIndex))?Number(x.tableIndex):-1,used:false});
         }
       });
-      tx.set(STATE_REF,toFirestoreState(s));
+      writeTx(tx,toFirestoreState(s));
       return {state:s,results};
     });
     state=normalizeState(result.state);
@@ -752,7 +765,7 @@ function ceilingEditor(type){const c=normalizeCeiling(state.gachas[type]?.ceilin
 function materialAdminHtml(){const rows=state.materials.map((m,i)=>`<div class="adminMaterial" data-index="${i}"><input type="hidden" id="matId_${i}" value="${escapeHtml(m.id)}"><div><label>素材名</label><input id="matName_${i}" maxlength="40" value="${escapeHtml(m.name)}" placeholder="例：モバレポイント"><label>単位</label><input id="matUnit_${i}" maxlength="20" value="${escapeHtml(m.unit)}" placeholder="例：pt"><label>現在の残高</label><input id="matBal_${i}" type="number" min="0" step="1" value="${m.balance}"></div><button type="button" class="smallbtn danger removeMaterial" data-index="${i}">削除</button></div>`).join("");return `<div class="sectionTitle">🧩 素材管理</div><p class="note">素材IDはシステムが自動生成します。ここで設定した素材を、ガチャごほうびの素材欄から選択できます。</p><div id="materialAdminList">${rows||'<div class="empty">素材はまだありません。</div>'}</div><button type="button" class="smallbtn" id="addMaterial">＋ 素材を追加</button>`}
 function exchangeAdminHtml(){const shop=state.exchangeShop||{name:"",rules:"",recipes:[]};const recipeRows=(shop.recipes||[]).map((r,i)=>recipeAdminRow(r,i)).join("");return `<div class="sectionTitle">🔄 素材・交換所 管理</div><div class="note">交換所の名称は「素材・交換所」で固定しています。個別の交換内容は「交換名」で設定できます。</div><label>交換所ルール・説明</label><textarea class="adminTextarea" id="exchangeRules" placeholder="交換条件やイベント説明など">${escapeHtml(shop.rules||"")}</textarea><div id="recipeAdminList">${recipeRows||'<div class="empty">交換レシピはまだありません。</div>'}</div><button type="button" class="smallbtn adminRecipeAdd" id="addRecipe">＋ 交換レシピを追加</button>`}
 function recipeAdminRow(r,i){const reqs=[0,1,2].map(j=>{const q=r.requirements?.[j]||{materialId:"",qty:0};return `<div class="adminMini"><select id="recipe_${i}_reqM_${j}"><option value="">素材を選択</option>${materialOptions(q.materialId,false)}</select><input id="recipe_${i}_reqQ_${j}" type="number" min="0" step="1" value="${q.qty||0}" placeholder="必要量"></div>`}).join("");const outs=[0,1,2].map(j=>{const o=r.outputs?.[j]||{reward:"",rarity:"SR",qty:1};return `<div class="adminMini output"><select id="recipe_${i}_outR_${j}">${["N","R","SR","SSR","UR"].map(v=>`<option value="${v}" ${o.rarity===v?"selected":""}>${v}</option>`).join("")}</select><input id="recipe_${i}_outT_${j}" maxlength="20" value="${escapeHtml(o.reward||"")}" placeholder="ごほうび名"><input id="recipe_${i}_outQ_${j}" type="number" min="1" step="1" value="${o.qty||1}" placeholder="数量"></div>`}).join("");return `<div class="recipeAdmin" data-index="${i}"><input type="hidden" id="recipe_${i}_id" value="${escapeHtml(r.id)}"><label>交換名</label><input id="recipe_${i}_name" maxlength="40" value="${escapeHtml(r.name||"")}" placeholder="例：モバレ1回券と交換"><div class="miniTitle">必要な素材（最大3種類）</div>${reqs}<div class="miniTitle">交換でもらうごほうび（最大3個）</div>${outs}<button type="button" class="smallbtn danger removeRecipe" data-index="${i}">この交換レシピを削除</button></div>`}
-function showAdmin(){const a=document.getElementById("admin");a.classList.add("open");document.getElementById("detail").classList.remove("open");a.innerHTML=`<h3>⚙ 管理画面</h3><label>ガチャ可能回数</label><input id="aTickets" type="number" min="0" value="${state.tickets}"><label>今日の勉強時間（分）</label><input id="aToday" type="number" min="0" value="${state.todayStudy}"><label>累計勉強時間（分）</label><input id="aTotal" type="number" min="0" value="${state.totalStudy}"><label>試験日</label><input id="aExam" type="date" value="${state.examDate}"><label>「今日の勉強時間」のリセット時刻</label><input id="aResetTime" type="time" value="${state.resetTime||DEFAULT_RESET_TIME}"><div class="note">※指定時刻になると「今日の勉強時間」が0分に切り替わります。初期値は6:00です。</div><label>ガチャ用パスワード（最大100文字）</label><input id="aGachaPassword" type="text" maxlength="100" value="${escapeHtml(state.gachaPassword)}" autocomplete="off">${gachaAdminBlock("red","🔴 赤がちゃ")}${gachaAdminBlock("blue","🔵 青がちゃ")}${tableEditor("redBonus","🔴 赤がちゃ 11回目の確率",false)}${tableEditor("blueBonus","🔵 青がちゃ 11回目の確率",false)}${materialAdminHtml()}${exchangeAdminHtml()}<div class="adminMainActions"><button class="smallbtn adminSaveBtn" id="adminSave">✓ 修正を保存</button><button class="smallbtn adminCloseBtn" id="adminClose">閉じる</button></div><hr><p class="note">※ガチャでSR以上のごほうびはBOXに保管されます。素材を設定したごほうびは、レアリティに関係なく素材としてBOXにまとめて保管されます。交換所からのごほうびも同じBOXに入り、履歴には交換所からの入手として記録されます。</p><div class="sectionTitle">🧹 データ整理</div><div class="adminGrid"><button class="smallbtn danger" id="clearRewards">🎁 ごほうびBOXを一括削除</button><button class="smallbtn danger" id="clearHistory">📜 ガチャ・交換履歴を一括削除</button></div><button class="smallbtn danger" id="reset">全データ初期化</button>`;
+function showAdmin(){const a=document.getElementById("admin");a.classList.add("open");document.getElementById("detail").classList.remove("open");a.innerHTML=`<h3>⚙ 管理画面</h3><label>ガチャ可能回数</label><input id="aTickets" type="number" min="0" value="${state.tickets}"><label>今日の勉強時間（分）</label><input id="aToday" type="number" min="0" value="${state.todayStudy}"><label>累計勉強時間（分）</label><input id="aTotal" type="number" min="0" value="${state.totalStudy}"><label>試験日</label><input id="aExam" type="date" value="${state.examDate}"><label>「今日の勉強時間」のリセット時刻</label><input id="aResetTime" type="time" value="${state.resetTime||DEFAULT_RESET_TIME}"><div class="note">※指定時刻になると「今日の勉強時間」が0分に切り替わります。初期値は6:00です。</div>${gachaAdminBlock("red","🔴 赤がちゃ")}${gachaAdminBlock("blue","🔵 青がちゃ")}${tableEditor("redBonus","🔴 赤がちゃ 11回目の確率",false)}${tableEditor("blueBonus","🔵 青がちゃ 11回目の確率",false)}${materialAdminHtml()}${exchangeAdminHtml()}<div class="adminMainActions"><button class="smallbtn adminSaveBtn" id="adminSave">✓ 修正を保存</button><button class="smallbtn adminCloseBtn" id="adminClose">閉じる</button></div><hr><p class="note">※ガチャでSR以上のごほうびはBOXに保管されます。素材を設定したごほうびは、レアリティに関係なく素材としてBOXにまとめて保管されます。交換所からのごほうびも同じBOXに入り、履歴には交換所からの入手として記録されます。</p><div class="sectionTitle">🧹 データ整理</div><div class="adminGrid"><button class="smallbtn danger" id="clearRewards">🎁 ごほうびBOXを一括削除</button><button class="smallbtn danger" id="clearHistory">📜 ガチャ・交換履歴を一括削除</button></div><button class="smallbtn danger" id="reset">全データ初期化</button>`;
   document.getElementById("redReset").onclick=()=>resetGacha("red");document.getElementById("blueReset").onclick=()=>resetGacha("blue");
   for(const type of ["red","blue"]){const mode=document.getElementById(`${type}OpenMode`),start=document.getElementById(`${type}StartAt`),end=document.getElementById(`${type}EndAt`);const syncPeriod=()=>{const on=mode.value==="period";start.disabled=!on;end.disabled=!on;start.closest("label").style.opacity=on?"1":".5";end.closest("label").style.opacity=on?"1":".5"};mode.onchange=syncPeriod;syncPeriod()}
   for(const type of ["red","blue"]){const toggle=()=>{const on=document.getElementById(`${type}CeilingEnabled`).value==="on";const two=document.getElementById(`${type}CeilingSlots`).value==="2";const box=document.getElementById(`${type}CeilingSecond`);if(box)box.style.display=two?"grid":"none";for(const id of [`${type}CeilingCount1`,`${type}CeilingRarity1`,`${type}CeilingReward1`])document.getElementById(id).disabled=!on;for(const id of [`${type}CeilingCount2`,`${type}CeilingRarity2`,`${type}CeilingReward2`])document.getElementById(id).disabled=!on||!two;};document.getElementById(`${type}CeilingEnabled`).onchange=toggle;document.getElementById(`${type}CeilingSlots`).onchange=toggle;toggle()}
@@ -762,14 +775,14 @@ function showAdmin(){const a=document.getElementById("admin");a.classList.add("o
   document.getElementById("adminClose").onclick=()=>a.classList.remove("open");
   document.getElementById("clearRewards").onclick=async()=>{if(!confirm(`ごほうびBOXに保管されているごほうびをすべて削除します。\n\nこの操作は取り消せません。よろしいですか？`))return;try{await updateCloud(s=>{s.rewards=[];return s});showAdmin()}catch(err){openModal(`<h2>削除できませんでした</h2><button class="singleBtn" id="modalCloseBtn">OK</button>`)}};
   document.getElementById("clearHistory").onclick=async()=>{if(!confirm(`ガチャ・交換履歴をすべて削除します。\n\nこの操作は取り消せません。よろしいですか？`))return;try{await updateCloud(s=>{s.history=[];return s});showAdmin()}catch(err){openModal(`<h2>削除できませんでした</h2><button class="singleBtn" id="modalCloseBtn">OK</button>`)}};
-  document.getElementById("reset").onclick=async()=>{if(confirm("全データを初期化します。よろしいですか？")&&confirm("本当に削除しますか？")){try{await deleteDoc(STATE_REF);localStorage.removeItem(KEY);localStorage.removeItem(OLD_KEY);state=clone(defaults);cloudReady=false;await ensureCloudState();render();showAdmin()}catch(err){openModal(`<h2>初期化できませんでした</h2><button class="singleBtn" id="modalCloseBtn">OK</button>`)}}};
+  document.getElementById("reset").onclick=async()=>{if(confirm("全データを初期化します。よろしいですか？")&&confirm("本当に削除しますか？")){try{await deleteMine();localStorage.removeItem(KEY);localStorage.removeItem(OLD_KEY);state=clone(defaults);cloudReady=false;await ensureCloudState();render();showAdmin()}catch(err){openModal(`<h2>初期化できませんでした</h2><button class="singleBtn" id="modalCloseBtn">OK</button>`)}}};
 }
 function gachaAdminBlock(type,label){const g=state.gachas[type];return `<div class="sectionTitle">${label} 表示・公開設定</div><label>ガチャ名（最大30文字）</label><input id="${type}NameEdit" maxlength="30" value="${escapeHtml(g.name)}"><label>コメント</label><textarea class="adminTextarea" id="${type}CommentEdit" placeholder="ガチャ一覧に表示するコメント">${escapeHtml(g.comment)}</textarea><label>ガチャルール・説明</label><textarea class="adminTextarea" id="${type}RulesEdit" placeholder="ガチャ詳細で表示するルールや注意事項など">${escapeHtml(g.rules||"")}</textarea><label>ガチャ公開状態</label><select id="${type}OpenMode"><option value="open" ${g.openMode==="open"?"selected":""}>常時開放（いつでも引ける）</option><option value="closed" ${g.openMode==="closed"?"selected":""}>非公開（引けない）</option><option value="period" ${(g.openMode==="period"||g.openMode==="auto")?"selected":""}>期間限定（開催期間を指定）</option></select><div class="adminGrid periodFields"><label>開催開始日時<input id="${type}StartAt" type="datetime-local" value="${escapeHtml(g.startAt||"")}"></label><label>開催終了日時<input id="${type}EndAt" type="datetime-local" value="${escapeHtml(g.endAt||"")}"></label></div><div class="note">「期間限定」を選ぶと、指定した開始日時〜終了日時の間だけ自動で開放されます。</div>${ceilingEditor(type)}${tableEditor(type,`${label} 排出設定`,true)}<button class="smallbtn" id="${type}Reset">🔄 ${label}設定を初期化</button>`}
 function refreshMaterialSelectOptions(){document.querySelectorAll('select[id*="_m_"]').forEach(sel=>{const selected=sel.value;const isBlank=sel.id.includes("reqM_");sel.innerHTML=(isBlank?'<option value="">素材を選択</option>':'<option value="">素材なし</option>')+Array.from(document.querySelectorAll('.adminMaterial')).map(row=>{const idx=row.dataset.index;const name=document.getElementById(`matName_${idx}`)?.value.trim();const id=document.getElementById(`matId_${idx}`)?.value;if(!id||!name)return '';return `<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`}).join('');sel.value=selected})}
 function bindDynamicAdmin(){document.querySelectorAll(".removeMaterial").forEach(btn=>btn.onclick=()=>{const row=btn.closest(".adminMaterial");row?.remove()});document.querySelectorAll(".removeRecipe").forEach(btn=>btn.onclick=()=>{const row=btn.closest(".recipeAdmin");row?.remove()})}
 function collectMaterials(){return Array.from(document.querySelectorAll(".adminMaterial")).map((row,i)=>({id:document.getElementById(`matId_${row.dataset.index||i}`)?.value||makeId("mat"),name:document.getElementById(`matName_${row.dataset.index||i}`)?.value.trim()||"",unit:document.getElementById(`matUnit_${row.dataset.index||i}`)?.value.trim()||"",balance:Math.max(0,Math.floor(+document.getElementById(`matBal_${row.dataset.index||i}`)?.value||0))})).filter(m=>m.name)}
 function collectRecipes(){return Array.from(document.querySelectorAll(".recipeAdmin")).map((row,i)=>{const idx=row.dataset.index||i;const req=[0,1,2].map(j=>({materialId:document.getElementById(`recipe_${idx}_reqM_${j}`)?.value||"",qty:Math.max(0,Math.floor(+document.getElementById(`recipe_${idx}_reqQ_${j}`)?.value||0))})).filter(q=>q.materialId&&q.qty>0);const outputs=[0,1,2].map(j=>({rarity:document.getElementById(`recipe_${idx}_outR_${j}`)?.value||"SR",reward:document.getElementById(`recipe_${idx}_outT_${j}`)?.value.trim()||"",qty:Math.max(1,Math.floor(+document.getElementById(`recipe_${idx}_outQ_${j}`)?.value||1))})).filter(o=>o.reward);return {id:document.getElementById(`recipe_${idx}_id`)?.value||makeId("ex"),name:document.getElementById(`recipe_${idx}_name`)?.value.trim()||"",requirements:req,outputs}}).filter(r=>r.name||r.requirements.length||r.outputs.length)}
-async function saveAdmin(){const next=clone(state);next.tickets=Math.max(0,+document.getElementById("aTickets").value||0);next.todayStudy=Math.max(0,+document.getElementById("aToday").value||0);next.totalStudy=Math.max(0,+document.getElementById("aTotal").value||0);next.examDate=document.getElementById("aExam").value||"2026-10-18";next.resetTime=document.getElementById("aResetTime").value||DEFAULT_RESET_TIME;next.gachaPassword=document.getElementById("aGachaPassword").value.trim()||DEFAULT_GACHA_PASSWORD;for(const type of ["red","blue"]){const oldG=state.gachas[type]||{};const mode=document.getElementById(`${type}OpenMode`).value;const startAt=document.getElementById(`${type}StartAt`)?.value||"";const endAt=document.getElementById(`${type}EndAt`)?.value||"";if(mode==="period"&&(!startAt||!endAt||Date.parse(startAt)>=Date.parse(endAt))){openModal(`<h2>開催期間を確認してください</h2><p>開始日時と終了日時を入力し、開始が終了より前になるようにしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return;}const enabled=document.getElementById(`${type}CeilingEnabled`).value==="on";const slots=Number(document.getElementById(`${type}CeilingSlots`).value)===2?2:1;const c1=Math.max(1,Math.floor(+document.getElementById(`${type}CeilingCount1`).value||40)),c2=Math.max(1,Math.floor(+document.getElementById(`${type}CeilingCount2`).value||80));const cr1=document.getElementById(`${type}CeilingRarity1`).value,cr2=document.getElementById(`${type}CeilingRarity2`).value,r1=document.getElementById(`${type}CeilingReward1`).value.trim(),r2=document.getElementById(`${type}CeilingReward2`).value.trim(),cm1=document.getElementById(`${type}CeilingMaterial1`)?.value||"",cm2=document.getElementById(`${type}CeilingMaterial2`)?.value||"",cq1=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingMaterialQty1`)?.value||0)),cq2=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingMaterialQty2`)?.value||0)),cp=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingProgress`).value||0));if(enabled&&(!r1||(slots===2&&(!r2||c2<=c1)))){openModal(`<h2>天井設定を確認してください</h2><p>天井のごほうびと到達回数を確認してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if((cm1&&cq1<=0)||(cm2&&cq2<=0)){openModal(`<h2>天井の素材設定を確認してください</h2><p>素材を選んだ場合は、素材数量を1以上にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if((cm1&&!next.materials.some(m=>m.id===cm1))||(cm2&&!next.materials.some(m=>m.id===cm2))){openModal(`<h2>天井の素材設定を確認してください</h2><p>選択された素材が見つかりません。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}next.gachas[type]={name:document.getElementById(`${type}NameEdit`).value.slice(0,30),comment:document.getElementById(`${type}CommentEdit`).value,rules:document.getElementById(`${type}RulesEdit`).value,openMode:mode,startAt,endAt,autoWeekday:Number(oldG.autoWeekday)||1,autoTime:String(oldG.autoTime||"18:00"),autoReleaseAt:"",ceiling:{enabled,slotCount:slots,items:[{draws:c1,rarity:cr1,reward:r1,materialId:cm1,materialQty:cq1},{draws:c2,rarity:cr2,reward:r2,materialId:cm2,materialQty:cq2}],progress:cp}};for(let i=0;i<5;i++){const rar=document.getElementById(`${type}_rar_${i}`).value,reward=document.getElementById(`${type}_r_${i}`).value.trim(),p=Math.max(0,+document.getElementById(`${type}_p_${i}`).value||0),mid=document.getElementById(`${type}_m_${i}`).value||"",qty=Math.max(0,Math.floor(+document.getElementById(`${type}_q_${i}`).value||0));if(rar==="なし"&&p>0){openModal(`<h2>確率を確認してください</h2><p>「なし」の枠は確率0%にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(mid&&!state.materials.some(m=>m.id===mid)&&!document.getElementById("matName_0")){openModal(`<h2>素材設定を確認してください</h2><p>選択された素材が見つかりません。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(mid&&qty<=0){openModal(`<h2>素材量を確認してください</h2><p>素材を選んだ場合は、素材量を1以上にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(reward.length>20){openModal(`<h2>文字数を確認してください</h2><p>ごほうびは最大20文字です。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}next.tables[type][i]=[rar,reward,p,mid,qty]}const sum=next.tables[type].reduce((a,r)=>a+Number(r[2]),0);if(Math.abs(sum-100)>.001){openModal(`<h2>確率を確認してください</h2><p>${type}の確率合計が <b>${sum}%</b> です。100%になるよう修正してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}}
+async function saveAdmin(){const next=clone(state);next.tickets=Math.max(0,+document.getElementById("aTickets").value||0);next.todayStudy=Math.max(0,+document.getElementById("aToday").value||0);next.totalStudy=Math.max(0,+document.getElementById("aTotal").value||0);next.examDate=document.getElementById("aExam").value||"2026-10-18";next.resetTime=document.getElementById("aResetTime").value||DEFAULT_RESET_TIME;next.gachaPassword="";for(const type of ["red","blue"]){const oldG=state.gachas[type]||{};const mode=document.getElementById(`${type}OpenMode`).value;const startAt=document.getElementById(`${type}StartAt`)?.value||"";const endAt=document.getElementById(`${type}EndAt`)?.value||"";if(mode==="period"&&(!startAt||!endAt||Date.parse(startAt)>=Date.parse(endAt))){openModal(`<h2>開催期間を確認してください</h2><p>開始日時と終了日時を入力し、開始が終了より前になるようにしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return;}const enabled=document.getElementById(`${type}CeilingEnabled`).value==="on";const slots=Number(document.getElementById(`${type}CeilingSlots`).value)===2?2:1;const c1=Math.max(1,Math.floor(+document.getElementById(`${type}CeilingCount1`).value||40)),c2=Math.max(1,Math.floor(+document.getElementById(`${type}CeilingCount2`).value||80));const cr1=document.getElementById(`${type}CeilingRarity1`).value,cr2=document.getElementById(`${type}CeilingRarity2`).value,r1=document.getElementById(`${type}CeilingReward1`).value.trim(),r2=document.getElementById(`${type}CeilingReward2`).value.trim(),cm1=document.getElementById(`${type}CeilingMaterial1`)?.value||"",cm2=document.getElementById(`${type}CeilingMaterial2`)?.value||"",cq1=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingMaterialQty1`)?.value||0)),cq2=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingMaterialQty2`)?.value||0)),cp=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingProgress`).value||0));if(enabled&&(!r1||(slots===2&&(!r2||c2<=c1)))){openModal(`<h2>天井設定を確認してください</h2><p>天井のごほうびと到達回数を確認してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if((cm1&&cq1<=0)||(cm2&&cq2<=0)){openModal(`<h2>天井の素材設定を確認してください</h2><p>素材を選んだ場合は、素材数量を1以上にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if((cm1&&!next.materials.some(m=>m.id===cm1))||(cm2&&!next.materials.some(m=>m.id===cm2))){openModal(`<h2>天井の素材設定を確認してください</h2><p>選択された素材が見つかりません。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}next.gachas[type]={name:document.getElementById(`${type}NameEdit`).value.slice(0,30),comment:document.getElementById(`${type}CommentEdit`).value,rules:document.getElementById(`${type}RulesEdit`).value,openMode:mode,startAt,endAt,autoWeekday:Number(oldG.autoWeekday)||1,autoTime:String(oldG.autoTime||"18:00"),autoReleaseAt:"",ceiling:{enabled,slotCount:slots,items:[{draws:c1,rarity:cr1,reward:r1,materialId:cm1,materialQty:cq1},{draws:c2,rarity:cr2,reward:r2,materialId:cm2,materialQty:cq2}],progress:cp}};for(let i=0;i<5;i++){const rar=document.getElementById(`${type}_rar_${i}`).value,reward=document.getElementById(`${type}_r_${i}`).value.trim(),p=Math.max(0,+document.getElementById(`${type}_p_${i}`).value||0),mid=document.getElementById(`${type}_m_${i}`).value||"",qty=Math.max(0,Math.floor(+document.getElementById(`${type}_q_${i}`).value||0));if(rar==="なし"&&p>0){openModal(`<h2>確率を確認してください</h2><p>「なし」の枠は確率0%にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(mid&&!state.materials.some(m=>m.id===mid)&&!document.getElementById("matName_0")){openModal(`<h2>素材設定を確認してください</h2><p>選択された素材が見つかりません。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(mid&&qty<=0){openModal(`<h2>素材量を確認してください</h2><p>素材を選んだ場合は、素材量を1以上にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(reward.length>20){openModal(`<h2>文字数を確認してください</h2><p>ごほうびは最大20文字です。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}next.tables[type][i]=[rar,reward,p,mid,qty]}const sum=next.tables[type].reduce((a,r)=>a+Number(r[2]),0);if(Math.abs(sum-100)>.001){openModal(`<h2>確率を確認してください</h2><p>${type}の確率合計が <b>${sum}%</b> です。100%になるよう修正してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}}
   for(const key of ["redBonus","blueBonus"]){let sum=0,base=key.replace("Bonus","");for(let i=0;i<5;i++){const p=Math.max(0,+document.getElementById(`${key}_p_${i}`).value||0);next.tables[key][i]=[next.tables[base][i][0],next.tables[base][i][1],p,next.tables[base][i][3],next.tables[base][i][4]];sum+=p}if(Math.abs(sum-100)>.001){openModal(`<h2>11回目の確率を確認してください</h2><p>${key}の確率合計が <b>${sum}%</b> です。100%になるよう修正してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}}
   next.materials=collectMaterials();const validMaterialIds=new Set(next.materials.map(m=>m.id));const referencedMaterialIds=[...Object.keys(DEFAULT_TABLES)].flatMap(key=>(next.tables[key]||[]).map(r=>String(r[3]||"")).filter(Boolean));const missingReferenced=[...new Set(referencedMaterialIds.filter(id=>!validMaterialIds.has(id)))];if(missingReferenced.length){openModal(`<h2>素材設定を確認してください</h2><p>ガチャのごほうびに使用中の素材を削除しようとしています。<br>先にガチャ排出設定の素材欄を「素材なし」に変更してから削除してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}for(const key of Object.keys(DEFAULT_TABLES))next.tables[key]=next.tables[key].map(r=>[r[0],r[1],r[2],String(r[3]||""),Math.max(0,Number(r[4])||0)]);next.exchangeShop={name:"素材・交換所",rules:document.getElementById("exchangeRules").value,recipes:collectRecipes()};for(const r of next.exchangeShop.recipes){if(!r.name||!r.requirements.length||!r.outputs.length){openModal(`<h2>交換レシピを確認してください</h2><p>交換名・必要素材・交換ごほうびを設定してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(r.outputs.some(o=>o.reward.length>20)){openModal(`<h2>交換ごほうびを確認してください</h2><p>ごほうび名は最大20文字です。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}}
   try{await updateCloud(()=>next);showAdmin()}catch(err){console.error(err);openModal(`<h2>保存できませんでした</h2><p>Firebaseへの接続でエラーが発生しました。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`)} }
@@ -967,7 +980,7 @@ setInterval(async()=>{
   }
 },30000);
 
-(async function init(){
+async function init(){
   try{
     render();
     await ensureCloudState();
@@ -978,9 +991,115 @@ setInterval(async()=>{
     setCloudStatus("⚠️ Firebase接続エラー");
     openModal(`<h2>Firebaseに接続できません</h2><p>Firebaseへの接続または初期画面の準備中にエラーが発生しました。</p><p style="font-size:12px;text-align:left;word-break:break-word;background:#111;color:#fff;padding:10px;border-radius:8px;">${escapeHtml((err && (err.code || err.message)) ? ((err.code||"") + " " + (err.message||"")) : String(err))}</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);
   }
-})();
+}
 setInterval(()=>{if(cloudReady)refreshCloud().catch(console.error);},60000);
+
+/* ===== v44: IDログイン + ユーザーごとのデータ（デバッグ版） ===== */
+const OWNER_EMAIL="ここに管理者のGmailアドレス";   // ← 管理者（あなた）のGoogleアカウントに書き換え
+const DATA_COLLECTIONS={shared:"devShared",user:"devData",links:"devLinks",profiles:"devUsers",legacy:"devState"};
+const SHARED_REF=doc(db,DATA_COLLECTIONS.shared,"main");
+const SH_KEYS=["tables","gachas","materials","exchangeShop","examDate","resetTime","missionCfg","presets","gachaPassword"];
+const auth=getAuth(app),authGate=document.getElementById("authGate"),lcs=s=>String(s||"").toLowerCase();
+let me=null,isOwner=false,authStarted=false,ACTIVE_ID="",ACTIVE_NAME="";
+const userRef=()=>doc(db,DATA_COLLECTIONS.user,ACTIVE_ID),userRefFor=id=>doc(db,DATA_COLLECTIONS.user,id),linkRef=u=>doc(db,DATA_COLLECTIONS.links,u),profRef=id=>doc(db,DATA_COLLECTIONS.profiles,id);
+const sj=o=>JSON.stringify(o,(k,v)=>v&&typeof v==="object"&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
+/* 共有データ(devShared)と個人データ(devData/ID)を、従来の1つのstateとして合成・分割する */
+function mergeRaw(sh,us){const r={...sh,...us};if(sh.gachas){r.gachas=clone(sh.gachas);for(const k of["red","blue"])if(r.gachas[k])r.gachas[k].ceiling={...(r.gachas[k].ceiling||{}),progress:(us.ceilProgress||{})[k]||0}}delete r.ceilProgress;return r}
+const mkSnap=(a,b)=>({exists:()=>a.exists()||b.exists(),data:()=>mergeRaw(a.exists()?a.data():{},b.exists()?b.data():{})});
+async function readTx(tx){const[a,b]=await Promise.all([tx.get(SHARED_REF),tx.get(userRef())]);tx.__sh=a.exists()?sj(a.data()):null;return mkSnap(a,b)}
+function writeTx(tx,x){
+  const sh={},us={};for(const[k,v]of Object.entries(x))(SH_KEYS.includes(k)?sh:us)[k]=v;
+  us.ceilProgress={};for(const k of["red","blue"]){const c=sh.gachas&&sh.gachas[k]&&sh.gachas[k].ceiling;if(c){us.ceilProgress[k]=c.progress||0;c.progress=0}}
+  tx.set(userRef(),us);if(isOwner&&sj(sh)!==tx.__sh)tx.set(SHARED_REF,sh);
+}
+async function readMerged(){const[a,b]=await Promise.all([getDoc(SHARED_REF),getDoc(userRef())]);return mkSnap(a,b)}
+async function deleteMine(){await deleteDoc(userRef())}
+async function importLegacy(){
+  try{if((await getDoc(SHARED_REF)).exists())return;const o=await getDoc(doc(db,"app",DATA_COLLECTIONS.legacy));if(!o.exists())return;
+    const x=toFirestoreState(normalizeState(o.data())),sh={};for(const k of SH_KEYS)if(k in x)sh[k]=x[k];
+    if(sh.gachas)for(const k of["red","blue"])if(sh.gachas[k]&&sh.gachas[k].ceiling)sh.gachas[k].ceiling.progress=0;
+    await setDoc(SHARED_REF,sh)}catch(e){console.warn(e)}
+}
+/* ログイン画面 */
+const rid=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>"abcdefghjkmnpqrstuvwxyz23456789"[b%31]).join("");
+const okId=s=>/^[a-z0-9_-]{3,24}$/.test(s);
+function gateHtml(inner){authGate.className="show";authGate.innerHTML=`<div class="gBox"><img class="logo" src="icon-512.png" alt="" onerror="this.style.display='none'"><h1>宅建がちゃ</h1>${inner}</div>`}
+function showId(msg){
+  gateHtml(`<p>${msg||"ユーザー名を登録、または入力してください。<br>同じIDでログインすると同じデータを開きます。"}</p><input id="gId" maxlength="24" autocapitalize="none" autocomplete="username" placeholder="ユーザーID（英数字）"><input id="gName" maxlength="12" autocomplete="nickname" placeholder="表示名（新規登録時・任意）"><button id="gGo" class="gBtn">登録・ログイン</button><p class="note">IDは3〜24文字の英数字・「-」「_」。IDを知っている人は同じデータに入れる簡易方式です。</p><button id="gAdm" class="gLink">管理者ログイン</button>`);
+  const i=document.getElementById("gId");i.onkeydown=e=>{if(e.key==="Enter")idLogin()};
+  document.getElementById("gGo").onclick=idLogin;document.getElementById("gAdm").onclick=adminLogin;
+}
+async function idLogin(){
+  const id=lcs(document.getElementById("gId").value.trim());
+  const name=(document.getElementById("gName").value.trim().slice(0,12)||id);
+  if(!okId(id)){showId("IDは英数字・「-」「_」の3〜24文字です。");return}
+  try{
+    const p=await getDoc(profRef(id));
+    if(!p.exists()){
+      await setDoc(profRef(id),{name,createdAt:Date.now(),createdBy:"self"});
+      await setDoc(userRefFor(id),{} ,{merge:true});
+      await setDoc(linkRef(me.uid),{id});begin(id,name);return;
+    }
+    await setDoc(linkRef(me.uid),{id});begin(id,p.data().name||name);
+  }catch(e){console.warn(e);showId("登録・ログインできませんでした（"+escapeHtml(e.code||e.message)+"）。Firebaseのルールと接続を確認してください。")}
+}
+async function adminLogin(){
+  const p=new GoogleAuthProvider();p.setCustomParameters({prompt:"select_account"});
+  try{await signInWithPopup(auth,p)}catch(e){if(e.code==="auth/popup-blocked")await signInWithRedirect(auth,p);else if(!/popup-closed|cancelled/.test(e.code||""))showId("管理者ログインできませんでした（"+escapeHtml(e.code||e.message)+"）")}
+}
+onAuthStateChanged(auth,async u=>{
+  me=u;
+  if(!u){signInAnonymously(auth).catch(e=>gateHtml(`<p>ログインを開始できません。<br>Firebaseの Authentication で「匿名」を有効にしてください。<br><small>${escapeHtml(e.code||"")}</small></p>`));return}
+  if(!u.isAnonymous){
+    if(OWNER_EMAIL.includes("ここに")||lcs(u.email)!==lcs(OWNER_EMAIL)){gateHtml(`<p>このアカウントは管理者ではありません。<br><small>（管理者のメール設定 OWNER_EMAIL も確認してください）</small></p><button id="gOut" class="gBtn sub">戻る</button>`);document.getElementById("gOut").onclick=()=>signOut(auth);return}
+    isOwner=true;await importLegacy();
+    const last=localStorage.getItem("ownerId");
+    if(last){try{const p=await getDoc(profRef(last));if(p.exists()){begin(last,p.data().name);return}}catch(e){console.warn(e)}}
+    showPicker();return;
+  }
+  isOwner=false;
+  try{const l=await getDoc(linkRef(u.uid));if(l.exists()){const p=await getDoc(profRef(l.data().id));if(p.exists()){begin(l.data().id,p.data().name);return}await deleteDoc(linkRef(u.uid))}}catch(e){console.warn(e)}
+  showId();
+});
+function begin(id,name){
+  ACTIVE_ID=id;ACTIVE_NAME=name||id;KEY="takken_gacha_dev_u_"+id;OLD_KEY="takken_gacha_dev_u_old";
+  if(isOwner)localStorage.setItem("ownerId",id);
+  authGate.className="";authGate.innerHTML="";document.body.classList.toggle("owner",isOwner);
+  document.querySelector(".app").insertAdjacentHTML("beforeend",`<div id="whoami" class="whoami">プレイ中：<b>${escapeHtml(ACTIVE_NAME)}</b>（${escapeHtml(id)}）${isOwner?' ・ <button id="gSwitch">ユーザー切替</button>':""} ・ <button id="gSignOut">ログアウト</button></div>`);
+  document.getElementById("gSignOut").onclick=async()=>{if(!confirm("ログアウトしますか？"))return;try{localStorage.removeItem("ownerId");if(isOwner)await signOut(auth);else await deleteDoc(linkRef(me.uid))}catch(e){console.warn(e)}location.reload()};
+  const sw=document.getElementById("gSwitch");if(sw)sw.onclick=()=>{localStorage.removeItem("ownerId");location.reload()};
+  if(!authStarted){authStarted=true;init()}
+}
+/* 管理者: ユーザー管理 */
+const newUserForm=()=>`<div class="inl" style="grid-template-columns:1fr 1fr auto auto;margin-top:10px"><label>名前<input id="nuName" maxlength="12" placeholder="例：ゆうき"></label><label>ID<input id="nuId" maxlength="24" placeholder="3〜24文字" autocapitalize="none"></label><button class="smallbtn" data-rid="1" title="ランダムID">🎲</button><button class="smallbtn" data-newuser="1">作成</button></div><div class="note">IDを知っている人はそのユーザーとして入れます。推測されにくいID（🎲）をおすすめします。</div>`;
+async function usersRows(){
+  try{const s=await getDocs(collection(db,DATA_COLLECTIONS.profiles));return s.docs.map(d=>`<div class="logRow"><span><b>${escapeHtml(d.data().name||d.id)}</b>${d.id===ACTIVE_ID?" ✅":""}<br><small>ID：${escapeHtml(d.id)}</small></span><span><button data-open="${escapeHtml(d.id)}">開く</button> <button data-del="${escapeHtml(d.id)}">削除</button></span></div>`).join("")||'<div class="empty">まだユーザーがいません。</div>'}
+  catch(e){return"読み込めませんでした"}
+}
+async function showPicker(){gateHtml(`<p>プレイするユーザーを選ぶか、新しく作成してください。</p><div class="gList" id="uList">読み込み中…</div>${newUserForm()}<button id="gOut" class="gLink">ログアウト</button>`);document.getElementById("gOut").onclick=()=>signOut(auth);document.getElementById("uList").innerHTML=await usersRows()}
+const _showAdminId=showAdmin;
+showAdmin=function(){if(!isOwner)return;_showAdminId();const ex=document.getElementById("adminExtra");if(ex){ex.insertAdjacentHTML("beforebegin",`<div id="userBox"><div class="sectionTitle">👥 ユーザー管理（いま編集中：${escapeHtml(ACTIVE_NAME)}）</div><div class="note">ガチャの内容・素材・交換所などは全員共通です。勉強記録・BOX・回数券・履歴は、IDごとに別々に保存されます。</div><div class="chartBox" id="uList">読み込み中…</div>${newUserForm()}</div>`);usersRows().then(h=>{const e=document.getElementById("uList");if(e)e.innerHTML=h})}};
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-open],[data-del],[data-newuser],[data-rid]");if(!b||!isOwner)return;
+  try{
+    if(b.dataset.rid){document.getElementById("nuId").value=rid();return}
+    if(b.dataset.open){localStorage.setItem("ownerId",b.dataset.open);location.reload();return}
+    if(b.dataset.del){if(!confirm(`ID「${b.dataset.del}」を削除しますか？\nこのユーザーの勉強記録やBOXも消えます。`))return;
+      await deleteDoc(profRef(b.dataset.del));try{await deleteDoc(doc(db,DATA_COLLECTIONS.user,b.dataset.del))}catch(x){console.warn(x)}
+      if(b.dataset.del===ACTIVE_ID){localStorage.removeItem("ownerId");location.reload();return}
+    }
+    if(b.dataset.newuser){
+      const id=lcs(document.getElementById("nuId").value.trim()),name=document.getElementById("nuName").value.trim().slice(0,12)||id;
+      if(!okId(id)){errModal("IDを確認してください","英数字・「-」「_」の3〜24文字です。");return}
+      if((await getDoc(profRef(id))).exists()){errModal("そのIDは使われています");return}
+      await setDoc(profRef(id),{name,createdAt:Date.now()});
+    }
+    const h=await usersRows();const l=document.getElementById("uList");if(l)l.innerHTML=h;
+  }catch(err){console.error(err);errModal("保存できませんでした","通信状況を確認してください。")}
+});
+
 </script>
+<div id="authGate" class="show"><div class="gBox"><p>読み込み中…</p></div></div>
 <script>
 (function(){
   const $=id=>document.getElementById(id),body=document.body,det=$("detail"),adm=$("admin");
