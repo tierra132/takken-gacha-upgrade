@@ -1,0 +1,1117 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- v41: study log, daily missions, gacha reveal, presets -->
+<title>宅建がちゃ</title>
+<meta name="theme-color" content="#0f1b3d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="宅建がちゃ">
+<link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+:root{--bg:#f5f6f8;--card:#fff;--text:#20242a;--muted:#737982;--line:#e2e5e9;--red:#c93434;--blue:#3975c8;--gold:#d59b18}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Noto Sans JP","Yu Gothic",sans-serif}
+.app{max-width:720px;margin:auto;padding:18px 14px 36px}.debugBanner{text-align:center;background:#fff3cd;border:1px solid #e0b84b;color:#765900;font-weight:900;border-radius:10px;padding:8px;margin:0 0 10px;font-size:13px}.head{text-align:center;margin:8px 0 18px;position:relative}.appVersion{font-size:10px;color:var(--muted);text-align:left;margin:0 0 2px 2px}.head h1{font-size:30px;margin:0 0 4px}.head p{margin:0;color:var(--muted);font-size:13px}
+.status{display:grid;grid-template-columns:1fr 1fr;gap:10px}.stat,.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px;box-shadow:0 2px 8px #00000008}.stat .label{font-size:12px;color:var(--muted)}.stat .value{font-size:24px;font-weight:800;margin-top:3px}
+.study{margin-top:10px}.study button,.adminbtn,.smallbtn{width:100%;border:0;border-radius:12px;padding:13px;font-weight:700;font-size:15px;background:#242a31;color:#fff}.study button:disabled{opacity:.45}
+.gachas{display:grid;gap:14px;margin-top:14px}.gacha{padding:17px}.gacha.red{border-top:5px solid var(--red)}.gacha.blue{border-top:5px solid var(--blue)}
+.gtitle{display:flex;justify-content:space-between;align-items:center}.gtitle h2{margin:0;font-size:22px}.gtitle .more{width:36px;height:36px;border:1px solid var(--line);background:#fff;border-radius:50%;font-size:21px;line-height:1;font-weight:800;color:#555}
+.catch{font-size:12px;color:var(--muted);margin:5px 0 13px}.actions{display:grid;grid-template-columns:1fr 1.25fr;gap:9px}.actions button{border:0;border-radius:12px;padding:13px 8px;color:white;font-weight:800;font-size:15px}.red .actions button{background:var(--red)}.blue .actions button{background:var(--blue)}.actions button:disabled{opacity:.3}
+.links{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.links button{background:white;border:1px solid var(--line);border-radius:12px;padding:12px;font-weight:700}
+.detail{display:none;margin-top:14px}.detail.open{display:block}.detail h3{margin:0 0 10px}.history{max-height:280px;overflow:auto}.row{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding:9px 0;font-size:13px}.row:last-child{border-bottom:0}.empty{color:var(--muted);padding:10px 0}
+ .probtable{width:100%;border-collapse:collapse;font-size:13px}.probtable th,.probtable td{padding:8px 5px;border-bottom:1px solid var(--line);text-align:right}.probtable th:first-child,.probtable td:first-child{text-align:left}.rarityBadgeSmall{display:inline-flex;min-width:48px;height:30px;padding:0 8px;align-items:center;justify-content:center;border-radius:9px;border:2px solid currentColor;font-weight:950;letter-spacing:.4px;line-height:1;background:#f5f6f8}.rarityBadgeSmall.n{color:#555;border-color:#8b9198;background:#f0f1f3}.rarityBadgeSmall.r{color:#4779bd;border-color:#4779bd;background:#eef4fb}.rarityBadgeSmall.sr{color:#7953a6;border-color:#7953a6;background:#f3eef8}.rarityBadgeSmall.ssr{color:#b36f08;border-color:#c07a11;background:#fff6e7}.rarityBadgeSmall.tenjo{color:#8a5a00;border-color:#c28b20;background:#fff8df}.rarityBadgeSmall.ur{color:#b32626;border-color:#b32626;background:#fff0f0;box-shadow:0 1px 7px #b3262630}
+.gachaRules{white-space:pre-wrap;text-align:left;line-height:1.7;background:#f7f7f8;border-radius:12px;padding:12px;margin-top:10px}.gachaComment{white-space:pre-wrap;text-align:left;line-height:1.7}.adminTextarea{width:100%;min-height:110px;resize:vertical;box-sizing:border-box;padding:10px;border:1px solid #d8dbe0;border-radius:10px;font:inherit}.note{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5}
+.overlay{position:fixed;inset:0;background:#0007;display:none;align-items:center;justify-content:center;padding:18px;z-index:10}.overlay.show{display:flex}.modal{width:min(460px,100%);max-height:90vh;overflow:auto;background:white;border-radius:18px;padding:22px;text-align:center}.modal h2{margin:0 0 10px}.modal p{color:var(--muted);line-height:1.6}.modal input{width:100%;padding:13px;border:1px solid var(--line);border-radius:10px;font-size:16px}.modalBtns{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:15px}.modalBtns button{border:0;border-radius:11px;padding:12px;font-weight:800}.ok{background:#242a31;color:white}.cancel{background:#edf0f2}.singleBtn{width:100%;margin-top:12px;border:0;border-radius:11px;padding:12px;font-weight:800;background:#242a31;color:white}
+.resultNo{font-size:14px;font-weight:800;color:#6b7280;margin-bottom:10px}.result{min-height:180px;display:flex;flex-direction:column;justify-content:center}.rarity{font-size:46px;font-weight:900;letter-spacing:2px;display:inline-flex;align-self:center;min-width:116px;min-height:70px;padding:8px 18px;align-items:center;justify-content:center;border:4px solid currentColor;border-radius:18px;background:#f5f6f8;box-shadow:0 4px 14px #00000012}.rarity.n{background:#f0f1f3}.rarity.r{background:#eef4fb}.rarity.sr{background:#f3eef8;box-shadow:0 4px 16px #7953a620}.rarity.ssr{background:#fff6e7;box-shadow:0 4px 18px #c07a1128}.rarity.ur{background:#fff0f0;box-shadow:0 4px 22px #b3262635}.reward{font-size:20px;font-weight:800;margin-top:12px;line-height:1.45;overflow-wrap:anywhere}.rewardList{margin-top:10px;text-align:left}.rewardRow{display:grid;grid-template-columns:48px 42px 1fr;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid var(--line);font-size:14px}.rewardRow:last-child{border-bottom:0}.rewardRow .rno{color:var(--muted);font-size:12px}.rewardRow .rrarity{font-weight:900}.rewardRow .rtext{font-weight:700;overflow-wrap:anywhere}.rewardRow.eleven{background:#fffaf0;border-radius:8px}.rewardRow.eleven .rno{font-weight:800;color:#9a7110}.n{color:#555}.r{color:#4779bd}.sr{color:#7953a6}.ssr{color:#c07a11}.tenjo{color:#8a5a00}.ur{color:#b32626}
+.spark{animation:pop .55s ease}.flash{animation:flash 1s ease}@keyframes pop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08)}100%{transform:scale(1);opacity:1}}@keyframes flash{0%,100%{filter:none}50%{filter:brightness(1.45)}}
+.batchSummary{display:grid;grid-template-columns:repeat(5,1fr);gap:7px;margin-top:14px}
+.batchItem{border:1px solid var(--line);border-radius:10px;padding:8px 3px;background:#fafbfc;text-align:center}
+.batchItem .num{font-size:11px;color:var(--muted)}.batchItem .rar{font-size:17px;font-weight:900;margin-top:2px}.batchItem .amt{font-size:12px;font-weight:800;margin-top:2px}
+.batchItem.eleven{grid-column:3;border:2px solid var(--gold);background:#fffaf0}
+.batchItem.eleven .num{font-weight:800;color:#9a7110}
+.summaryTotal{margin-top:12px;padding:12px;border-radius:11px;background:#f3f5f7;display:flex;justify-content:space-between;font-weight:800}
+@media(max-width:430px){.batchSummary{gap:5px}.batchItem{padding:7px 2px}.batchItem .rar{font-size:15px}.batchItem .amt{font-size:10px}}
+.admin{display:none}.admin.open{display:block}.admin input,.admin select{width:100%;padding:11px;margin:5px 0 10px;border:1px solid var(--line);border-radius:9px}.admin label{font-size:12px;color:var(--muted)}.adminGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.periodFields{gap:10px}.periodFields label{min-width:0}.periodFields input{box-sizing:border-box;min-width:0;width:78%;max-width:78%;font-size:13px}.adminMainActions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:24px 0 18px;padding:14px 0;border-top:2px solid var(--line);border-bottom:2px solid var(--line)}.adminMainActions .adminSaveBtn{background:#1976d2!important;box-shadow:0 3px 10px #1976d230}.adminMainActions .adminCloseBtn{background:#5f6670!important;box-shadow:0 3px 10px #00000018}.adminRecipeAdd{margin-top:14px!important}.adminRecipeAdd + .adminMainActions{margin-top:26px}.danger{background:#a92b2b!important}.adminGrid + .danger{margin-top:10px!important}.back{margin-top:10px}.probedit{display:grid;grid-template-columns:58px 1fr 85px;gap:7px;align-items:center;margin:5px 0}.probedit input,.probedit select{margin:0!important}.probedit.withReward{grid-template-columns:58px 1fr 85px}.rewardItem{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:12px;border:2px solid var(--line);border-radius:14px;padding:10px 10px 10px 8px;margin:10px 0;background:#fff;box-shadow:0 2px 8px #0000000a}.rewardItem.n{border-color:#9aa0a6}.rewardItem.r{border-color:#4779bd}.rewardItem.sr{border-color:#7953a6;box-shadow:0 2px 12px #7953a620}.rewardItem.ssr{border-color:#c07a11;box-shadow:0 2px 14px #c07a1124}.rewardItem.tenjo{border-color:#c28b20;box-shadow:0 2px 16px #c28b2030}.rewardItem.tenjo .rewardBadge{background:#fff8df}.rewardItem.ur{border-color:#b32626;box-shadow:0 2px 16px #b3262630}.rewardBadge{height:54px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:950;letter-spacing:.5px;background:#f5f6f8;border:2px solid currentColor}.rewardItem.r .rewardBadge{background:#eef4fb}.rewardItem.sr .rewardBadge{background:#f3eef8}.rewardItem.ssr .rewardBadge{background:#fff6e7}.rewardItem.ur .rewardBadge{background:#fff0f0}.rewardBody{min-width:0}.rewardBody b{display:block;font-size:17px;line-height:1.35;overflow-wrap:anywhere}.rewardMeta{font-size:11px;color:var(--muted);margin-top:6px}.rewardMeta .rrarity{font-size:0}.rewardMeta .rrarity:after{content:""}.useReward{border:0;border-radius:9px;padding:9px 12px;font-weight:800;background:#242a31;color:#fff;white-space:nowrap}.boxCount{font-size:12px;color:var(--muted);margin:-4px 0 10px}.boxIntro{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 12px}.sectionTitle{font-weight:800;margin:18px 0 8px}
+@media(max-width:430px){.status{grid-template-columns:1fr 1fr}.stat .value{font-size:21px}}
+
+.gacha.closed{opacity:.48;filter:saturate(.55)}.gacha.closed .actions button{opacity:.55}.gacha.closed .more{opacity:.7}
+
+/* v39 material BOX redesign */
+.materialConvertControls{display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:nowrap}.materialConvertControls .materialStored{display:inline;font-size:14px;font-weight:900;color:var(--text);white-space:nowrap}.materialConvertControls .materialConvertOpen{border:0;border-radius:10px;padding:10px 12px;font-weight:900;background:#2f6fed;color:#fff;white-space:nowrap}.materialBadge{background:#eef5ff;color:#2f6fed;border:1px solid #bcd1ff}.materialRewardItem{grid-template-columns:58px minmax(0,1fr) auto!important;align-items:center!important}.materialRewardItem .rewardBody{min-width:0}.materialRewardItem .rewardBody b{font-size:17px;line-height:1.25}.materialRewardItem .rewardMeta{margin-top:4px}.materialConvertModal .materialModalBadge{display:inline-flex;align-items:center;justify-content:center;padding:8px 14px;border-radius:10px;background:#eef5ff;color:#2f6fed;border:2px solid #bcd1ff;font-weight:950}.materialConvertModal .materialModalName{font-size:24px;font-weight:950;margin-top:9px}.materialConvertModal .materialModalInfo{font-size:13px;color:var(--muted);line-height:1.6;margin:10px 0 14px}.materialConvertModal .materialModalInfo b{color:var(--text);font-size:17px}.materialQtyDisplay{font-size:34px;font-weight:950;margin:2px 0 4px}.materialQtyUnit{font-size:13px;color:var(--muted);margin-bottom:10px}.materialQtyRange{width:100%;accent-color:#2f6fed;margin:6px 0 13px}.materialQtyBtns{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-bottom:10px}.materialQtyBtns button,.materialAllBtn{border:1px solid var(--line);border-radius:10px;padding:10px 7px;background:#f7f8fa;font-weight:900}.materialAllBtn{width:100%;background:#eef5ff;border-color:#bcd1ff;color:#2f6fed;margin-bottom:4px}.materialModalBalance{font-size:12px;color:var(--muted);margin-top:8px}.boxIntro{font-size:12px;color:var(--muted);line-height:1.5;margin:0 0 12px}
+@media(max-width:430px){.materialRewardItem{grid-template-columns:54px minmax(0,1fr) auto!important;gap:8px!important;padding:9px 8px!important}.materialRewardItem .rewardBody b{font-size:16px}.materialConvertControls{gap:5px}.materialConvertControls .materialConvertOpen{padding:9px 10px}.materialBadge{min-width:54px!important}}
+.materialRules{font-size:11px!important;line-height:1.5!important;padding:9px 11px!important}.materialCard,.exchangeCard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0;box-shadow:0 2px 8px #00000008}.materialBalance{font-size:22px;font-weight:900;margin-top:4px}.exchangeTitle{font-weight:900;font-size:16px}.exchangeNeed,.exchangeGet{margin-top:7px;line-height:1.6}.exchangeArrow{text-align:center;color:var(--muted);font-weight:900;margin:4px 0}.exchangeBtn{width:100%;margin-top:10px;border:0;border-radius:10px;padding:10px;font-weight:900;background:#242a31;color:#fff}.adminMaterial,.recipeAdmin{border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0;background:#fafafa}.adminMini{display:grid;grid-template-columns:1fr 100px;gap:7px;margin:6px 0}.adminMini.output{grid-template-columns:64px 1fr 80px}.miniTitle{font-size:12px;font-weight:800;margin-top:10px;color:var(--muted)}.tableHead{grid-template-columns:52px 1fr 105px 55px 70px!important}.probedit.withMaterial{grid-template-columns:52px 1fr 105px 55px 70px!important}.adminMaterial{display:grid;grid-template-columns:1fr auto;gap:8px}.gachaProgress{font-size:12px;color:var(--muted);text-align:right;margin-top:8px}.links{grid-template-columns:1fr 1fr 1fr!important}
+@media(max-width:430px){.tableHead,.probedit.withMaterial{grid-template-columns:50px minmax(0,1fr) 78px 48px 62px!important}.adminMini.output{grid-template-columns:58px minmax(0,1fr) 62px}.links{grid-template-columns:1fr 1fr!important}.links #adminBtn{grid-column:1/-1!important}}
+.bonusHead{grid-template-columns:52px 1fr 70px!important}.bonusRow{grid-template-columns:52px 1fr 70px!important}.bonusLinked{font-size:11px;color:var(--muted);padding:0 4px}.bonusRow input{margin:0!important}
+.ceilingMaterialFields{display:grid;grid-template-columns:minmax(0,1fr) 100px;gap:6px;margin-top:5px}.ceilingMaterialFields select,.ceilingMaterialFields input{min-width:0}
+/* v41: 勉強記録 / ミッション / 排出演出 */
+.links{grid-template-columns:1fr 1fr!important}
+.goalRow{display:flex;justify-content:space-between;font-size:12px;font-weight:800;margin-bottom:5px}
+.bar{height:9px;background:#eceff2;border-radius:9px;overflow:hidden;margin-bottom:10px}.bar.sm{height:6px;margin:6px 0 0}.bar i{display:block;height:100%;background:linear-gradient(90deg,#3975c8,#2e9d6b);border-radius:9px;transition:width .4s}
+.missions{margin-top:10px}.missions h3{margin:0 0 2px;font-size:16px}
+.mRow{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--line)}.mRow:last-of-type{border-bottom:0}
+.mTitle{font-weight:800;font-size:14px}.mSub{font-size:11px;color:var(--muted);margin-top:3px}
+.mBtn{border:0;border-radius:10px;padding:9px 12px;font-weight:900;background:var(--gold);color:#fff;white-space:nowrap}.mBtn:disabled{background:#e4e7eb;color:#9aa0a6}.mBtn.got{background:#e8f5ee;color:#2e9d6b}
+.chips{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:12px 0}
+.chip{border:1.5px solid var(--cc);color:var(--cc);background:#fff;border-radius:999px;padding:7px 12px;font-weight:800;font-size:13px}.chip.on{background:var(--cc);color:#fff}
+.bigNum{font-size:34px;font-weight:900;margin:6px 0}
+.qBtns{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.qBtns button{border:1px solid var(--line);border-radius:10px;padding:10px 0;background:#f7f8fa;font-weight:900}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:10px 0}.seg button{border:1px solid var(--line);background:#fff;border-radius:10px;padding:9px;font-weight:800}.seg button.on{background:#242a31;color:#fff;border-color:#242a31}
+.sumGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.sumGrid div{background:#f3f5f7;border-radius:12px;padding:10px 6px;text-align:center}.sumGrid b{display:block;font-size:17px}.sumGrid span{font-size:11px;color:var(--muted)}
+.chartBox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;margin:8px 0}.chartBox svg{width:100%;height:auto;display:block}
+.donutWrap{display:grid;grid-template-columns:128px 1fr;gap:10px;align-items:center}.legend{display:grid;gap:5px;font-size:12px}.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px}
+.inl{display:grid;grid-template-columns:1fr 1fr auto;gap:8px;align-items:end}.inl label{font-size:11px;color:var(--muted)}.inl input{width:100%;padding:10px;border:1px solid var(--line);border-radius:9px;margin-top:4px;font-size:15px}.inl .smallbtn{width:auto;padding:11px 14px}
+.logRow{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.logRow:last-child{border-bottom:0}.logRow button{border:0;background:#f1f3f5;border-radius:8px;padding:6px 10px;font-weight:800;font-size:12px}
+.dayRow{padding:8px 0;border-bottom:1px solid var(--line);font-size:13px}.dayRow .chips2{display:flex;flex-wrap:wrap;gap:3px 10px;margin-top:4px;font-size:11px;color:var(--muted)}
+.skipAll{width:100%;margin-top:8px;border:0;background:none;color:var(--muted);font-size:12px;font-weight:700;text-decoration:underline}
+/* 排出演出 */
+.gStage{--cc:#9aa0a6;position:relative;height:220px;border-radius:16px;margin-bottom:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 55%,#fff 0,#eef1f6 70%);cursor:pointer}
+.gStage.r{--cc:#4779bd}.gStage.sr{--cc:#7953a6}.gStage.ssr{--cc:#e0a21a}.gStage.ur{--cc:#d63a3a}
+.capsule{position:absolute;width:92px;height:92px;border-radius:50%;background:linear-gradient(180deg,var(--cc) 0 50%,#fff 50% 100%);border:3px solid #0002;box-shadow:inset -8px -8px 0 #0000001a,0 10px 18px #0003;animation:cDrop .5s cubic-bezier(.3,1.4,.5,1) both,cShake var(--shk) ease-in-out .5s forwards,cBurst .22s ease-in calc(.5s + var(--shk)) forwards}
+.capsule:after{content:"";position:absolute;left:14px;top:12px;width:22px;height:12px;border-radius:50%;background:#fff9;transform:rotate(-30deg)}
+.gStage.ssr .capsule,.gStage.ur .capsule{box-shadow:0 0 26px var(--cc),inset -8px -8px 0 #0000001a}
+.gFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;animation:cFlash .5s ease-out calc(.5s + var(--shk)) both}
+.gStage.ssr .gFlash,.gStage.ur .gFlash{background:radial-gradient(circle,#fff 0,var(--cc) 100%)}
+.gRes{position:relative;text-align:center;opacity:0;animation:pop .55s ease var(--rv) both}
+.gTag{font-size:12px;font-weight:900;color:#b36f08;margin-top:6px}
+.cf{position:absolute;left:50%;top:50%;width:7px;height:11px;border-radius:2px;background:var(--c);opacity:0;animation:cfly 1.1s ease-out var(--d) forwards}
+.gStage.done .capsule,.gStage.done .gFlash,.gStage.done .cf{display:none}.gStage.done .gRes{animation:none;opacity:1}
+@keyframes cDrop{0%{transform:translateY(-190px)}100%{transform:none}}
+@keyframes cShake{0%,100%{transform:rotate(0)}15%{transform:rotate(-16deg) translateX(-6px)}30%{transform:rotate(14deg) translateX(6px)}45%{transform:rotate(-12deg)}60%{transform:rotate(10deg)}75%{transform:rotate(-6deg)}}
+@keyframes cBurst{to{transform:scale(1.7);opacity:0}}
+@keyframes cFlash{0%{opacity:0}30%{opacity:.95}100%{opacity:0}}
+@keyframes cfly{0%{opacity:1;transform:translate(0,0) rotate(0)}100%{opacity:0;transform:translate(var(--x),var(--y)) rotate(600deg)}}
+@media(prefers-reduced-motion:reduce){.capsule,.gFlash,.cf{display:none}.gRes{animation:none;opacity:1}}
+
+/* ===== v42: App-style redesign ===== */
+:root{--bg:#eaf1fb;--navy:#0f1b3d;--navy2:#1d3a8a;--line:#e3e8f0;--gold:#f2b01e}
+body{background:linear-gradient(180deg,#d9e8ff 0,#eef3fb 260px,#f4f6fa 100%) fixed;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Noto Sans JP",sans-serif;-webkit-tap-highlight-color:transparent}
+.app{padding:calc(12px + env(safe-area-inset-top)) 14px calc(92px + env(safe-area-inset-bottom))}
+button{font-family:inherit;transition:transform .12s,filter .12s}button:active:not(:disabled){transform:scale(.96)}
+.links{display:none!important}
+/* hero */
+.head{margin:0 0 14px;padding:18px 16px 16px;border-radius:26px;text-align:left;color:#fff;background:radial-gradient(circle at 90% 0,#4f86ff55,transparent 55%),linear-gradient(135deg,#0f1b3d,#1d3a8a);box-shadow:0 12px 28px #0f1b3d40;display:grid;grid-template-columns:64px 1fr auto;gap:2px 14px;align-items:center;overflow:hidden}
+.head .logo{grid-row:1/3;width:64px;height:64px;border-radius:17px;box-shadow:0 6px 16px #0006}
+.head h1{margin:0;font-size:24px;letter-spacing:.5px;color:#fff}.head p{color:#c9d6ff;font-size:12px;grid-column:2}
+.head .appVersion{position:absolute;right:14px;bottom:8px;color:#8fa4e0;margin:0}
+.head #cloudStatus{grid-column:1/-1;margin:8px 0 0!important;color:#9fb3ee;font-size:11px}
+.gear{grid-column:3;grid-row:1/3;width:40px;height:40px;border:0;border-radius:50%;background:#ffffff1f;color:#fff;font-size:18px}
+/* stats */
+.status{gap:10px;margin-top:-4px}
+.stat{border:0;border-radius:20px;padding:14px;box-shadow:0 6px 18px #1d3a8a14;position:relative;overflow:hidden}
+.stat .label{font-weight:700;font-size:11px}.stat .value{font-size:22px;letter-spacing:-.3px}
+.stat:nth-child(1){grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#ffd35a,#f29a1b);color:#4a2c00;padding:16px 18px;box-shadow:0 10px 24px #f29a1b55}
+.stat:nth-child(1) .label{color:#6b4300;font-size:13px}.stat:nth-child(1) .value{font-size:40px;margin:0;font-weight:900;text-shadow:0 2px 0 #fff6}
+.stat:nth-child(1):before{content:"🎫";font-size:54px;position:absolute;right:92px;opacity:.18;transform:rotate(-14deg)}
+.card{border:0;border-radius:22px;box-shadow:0 6px 18px #1d3a8a12}
+.study{padding:16px}.study button{background:linear-gradient(135deg,#2f6fed,#1d3a8a);box-shadow:0 8px 18px #2f6fed44;border-radius:16px;padding:16px;font-size:16px}
+.missions h3{font-size:16px;margin-bottom:4px}
+.mRow{padding:12px 0}.mBtn{border-radius:12px;box-shadow:0 4px 10px #f2b01e55}.mBtn:disabled{box-shadow:none}.bar{height:10px}.bar i{background:linear-gradient(90deg,#4f86ff,#34c38f)}
+/* gacha machines */
+.gachas{gap:16px;margin-top:16px}
+.gacha{border:0!important;border-radius:26px;padding:20px 18px 18px;color:#fff;position:relative;overflow:hidden;min-height:168px}
+.gacha.red{background:radial-gradient(circle at 100% 0,#ff8a6b66,transparent 50%),linear-gradient(145deg,#ff5a4d,#b01e33);box-shadow:0 14px 28px #c9343455}
+.gacha.blue{background:radial-gradient(circle at 100% 0,#7fe0ff66,transparent 50%),linear-gradient(145deg,#4a9bff,#1f4fb8);box-shadow:0 14px 28px #3975c855}
+.gacha:before{content:"";position:absolute;right:-28px;bottom:-34px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff9 0,#fff3 18%,transparent 19%),radial-gradient(circle,#ffffff2e 0 62%,#ffffff18 63%);border:3px solid #fff3;animation:floaty 4s ease-in-out infinite}
+.gacha:after{content:"";position:absolute;right:76px;bottom:-14px;width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fffb 0,#fff2 20%,transparent 21%),#ffd35a55;animation:floaty 5s ease-in-out -2s infinite}
+@keyframes floaty{50%{transform:translateY(-10px) rotate(6deg)}}
+.gtitle,.catch,.actions{position:relative;z-index:1}
+.gtitle h2{font-size:22px;color:#fff;text-shadow:0 2px 6px #0003}.gtitle .more{background:#ffffff2e;border:0;color:#fff;backdrop-filter:blur(6px)}
+.catch{color:#ffffffcc;font-size:13px;margin:6px 0 18px;max-width:78%}
+.actions{grid-template-columns:1fr 1.4fr;gap:10px}
+.actions button{border-radius:15px!important;padding:14px 8px!important;font-size:15px!important;box-shadow:0 5px 0 #0003}
+.red .actions button,.blue .actions button{background:#ffffff2e!important;color:#fff;border:1px solid #ffffff55;backdrop-filter:blur(6px)}
+.red .actions button:last-child,.blue .actions button:last-child{background:linear-gradient(180deg,#ffe07a,#f2a31c)!important;color:#5a3500;border:0;position:relative;overflow:hidden}
+.actions button:last-child:after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,#fff8,transparent);animation:shine 3s infinite}
+@keyframes shine{60%,100%{left:130%}}
+.actions button:disabled{opacity:.4;box-shadow:none}
+.gacha.closed{opacity:.6;filter:grayscale(.5)}
+/* bottom tab bar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:9;display:flex;justify-content:center;padding:0 10px calc(8px + env(safe-area-inset-bottom));pointer-events:none}
+.tabbar .in{pointer-events:auto;width:min(520px,100%);display:grid;grid-template-columns:repeat(5,1fr);gap:2px;background:#ffffffe6;backdrop-filter:blur(16px);border:1px solid #fff;border-radius:24px;padding:6px;box-shadow:0 10px 30px #0f1b3d33}
+.tab{border:0;background:none;border-radius:18px;padding:7px 0 6px;display:flex;flex-direction:column;align-items:center;gap:2px;color:#7a8396;font-size:10px;font-weight:800}
+.tab span{font-size:21px;line-height:1.1;filter:grayscale(1);opacity:.7;transition:.2s}
+.tab.on{background:linear-gradient(180deg,#eaf1ff,#dbe7ff);color:#1d3a8a}.tab.on span{filter:none;opacity:1;transform:translateY(-2px) scale(1.1)}
+/* bottom sheets */
+#sheetBg{position:fixed;inset:0;background:#0f1b3d66;backdrop-filter:blur(3px);z-index:7;opacity:0;pointer-events:none;transition:opacity .25s}body.sheet #sheetBg{opacity:1;pointer-events:auto}body.sheet{overflow:hidden}
+.detail.open,.admin.open{position:fixed;left:50%;transform:translateX(-50%);width:min(720px,100%);bottom:calc(74px + env(safe-area-inset-bottom));max-height:calc(100dvh - 110px - env(safe-area-inset-top));overflow:auto;z-index:8;margin:0;border-radius:28px 28px 22px 22px;padding:30px 16px 18px;box-shadow:0 -10px 40px #0f1b3d40;animation:sheetUp .3s cubic-bezier(.2,.9,.3,1);-webkit-overflow-scrolling:touch}
+.detail.open:before,.admin.open:before{content:"";position:absolute;top:10px;left:50%;width:44px;height:5px;margin-left:-22px;border-radius:5px;background:#cfd6e4}
+.detail h3,.admin h3{font-size:19px;margin:0 0 12px}
+@keyframes sheetUp{from{transform:translate(-50%,40px);opacity:0}}
+.sectionTitle{font-size:14px;letter-spacing:.3px}
+.rewardItem{border-radius:18px;box-shadow:0 4px 12px #1d3a8a10}
+.overlay{backdrop-filter:blur(4px);background:#0f1b3d99}.modal{border-radius:26px;box-shadow:0 20px 50px #0006;animation:pop .35s ease}
+.modal .singleBtn,.modal .ok{background:linear-gradient(135deg,#2f6fed,#1d3a8a);border-radius:14px;padding:14px}
+.chip,.seg button{transition:.15s}
+
+/* v44: login gate */
+#authGate{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;padding:24px;overflow:auto;background:radial-gradient(circle at 80% 0,#4f86ff55,transparent 55%),linear-gradient(160deg,#0f1b3d,#1d3a8a);color:#fff;text-align:center}
+#authGate.show{display:flex}.gBox{width:min(360px,100%)}.gBox .logo{width:104px;height:104px;border-radius:26px;box-shadow:0 12px 30px #0008;margin-bottom:12px}
+.gBox h1{margin:0 0 14px;font-size:28px;color:#fff}.gBox p{color:#d3deff;font-size:14px;line-height:1.8;margin:0 0 18px}
+.gBox input{width:100%;padding:15px;border-radius:14px;border:0;font-size:18px;text-align:center;margin-bottom:12px;background:#fff;color:#20242a}
+.gBtn{width:100%;border:0;border-radius:16px;padding:16px;font-size:16px;font-weight:900;background:#fff;color:#1d3a8a;box-shadow:0 8px 0 #0003}.gBtn.sub{background:#ffffff26;color:#fff;box-shadow:none}
+.gLink{background:none;border:0;color:#9fb3ee;text-decoration:underline;margin-top:18px;font-size:12px}
+.gList{text-align:left;background:#ffffff14;border-radius:14px;padding:4px 12px;margin-bottom:6px}.gBox .logRow{border-color:#ffffff26;color:#fff}.gBox .logRow button{background:#ffffff26;color:#fff}.gBox .inl label{color:#c9d6ff;text-align:left}.gBox .inl input{font-size:14px;padding:10px;margin:4px 0 0}.gBox .note{color:#9fb3ee;font-size:11px}
+body:not(.owner) .gear,body:not(.owner) #adminBtn{display:none!important}
+.whoami{text-align:center;font-size:11px;color:#7a8396;margin-top:20px}.whoami button{border:0;background:none;color:#2f6fed;font-weight:800;font-size:11px;text-decoration:underline}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="debugBanner">🧪 デバッグ版</div>
+  
+  <header class="head"><div class="appVersion">ver.5.0.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
+
+  <section class="status">
+    <div class="stat"><div class="label">🎫 ガチャ可能回数</div><div class="value" id="tickets">0枚</div></div>
+    <div class="stat"><div class="label">⏳ 試験まで</div><div class="value" id="countdown">--</div></div>
+    <div class="stat"><div class="label">📚 今日の勉強時間</div><div class="value" id="todayStudy">0分</div></div>
+    <div class="stat"><div class="label">📖 累計勉強時間</div><div class="value" id="totalStudy">0時間0分</div></div>
+  </section>
+
+  <section class="card study"><div id="goalBox"></div><button id="studyBtn">📝 勉強を記録する</button></section>
+
+  <section class="card missions" id="missionCard"></section>
+
+  <section class="gachas">
+    <div class="card gacha red">
+      <div class="gtitle"><h2 id="redName">🔴 赤がちゃ</h2><button class="more" id="redDetailBtn" aria-label="赤がちゃ詳細">⋯</button></div>
+      <div class="catch" id="redComment">さあ行こーか</div>
+      <div class="actions"><button id="red1">1連</button><button id="red10">10連＋1</button></div>
+    </div>
+    <div class="card gacha blue">
+      <div class="gtitle"><h2 id="blueName">🔵 青がちゃ</h2><button class="more" id="blueDetailBtn" aria-label="青がちゃ詳細">⋯</button></div>
+      <div class="catch" id="blueComment">まだあわてるような時間じゃない</div>
+      <div class="actions"><button id="blue1">1連</button><button id="blue10">10連＋1</button></div>
+    </div>
+  </section>
+
+  <section class="links">
+    <button id="historyBtn">📜 ガチャ履歴</button><button id="rewardBoxBtn">🎁 ごほうびBOX</button><button id="materialBtn">🧩 素材・交換所</button><button id="statsBtn">📊 勉強記録</button>
+    <button id="adminBtn" style="grid-column:1/-1">⚙ 管理</button>
+  </section>
+
+  <section id="detail" class="card detail"></section>
+  <section id="admin" class="card admin"></section>
+</div>
+
+<div id="modal" class="overlay">
+  <div class="modal" id="modalBody"></div>
+</div>
+
+<script>
+window.__takkenGachaModuleStarted=false;
+setTimeout(()=>{
+  if(!window.__takkenGachaModuleStarted){
+    const el=document.getElementById("cloudStatus");
+    if(el)el.textContent="⚠️ アプリ起動エラー（Firebase準備前）";
+    console.error("宅建がちゃ: module script did not start");
+  }
+},5000);
+</script>
+<script type="module">
+window.__takkenGachaModuleStarted=true;
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import {
+  getFirestore, doc, getDoc, setDoc, deleteDoc, runTransaction, collection, getDocs
+} from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+import { getAuth, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInAnonymously, signOut } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCjZ19wUhYKssy4cLCVtCdxyn6YvS0Vi2I",
+  authDomain: "takken-gacha.firebaseapp.com",
+  projectId: "takken-gacha",
+  storageBucket: "takken-gacha.firebasestorage.app",
+  messagingSenderId: "899764202403",
+  appId: "1:899764202403:web:9e0f59e9129ac63d134816"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const STATE_REF = doc(db, "app", "devState");
+
+const ADMIN_PASSWORD = "takken261018";
+const DEFAULT_GACHA_PASSWORD = "yuki329";
+const DEBUG_MODE = true;
+const DEFAULT_RESET_TIME = "06:00";
+let KEY="takken_gacha_dev_v2";
+let OLD_KEY="takken_gacha_dev_v1";
+
+const DEFAULT_TABLES={
+  red:[["N","",72,"",0],["R","",20,"",0],["SR","",5,"",0],["SSR","",2,"",0],["UR","",1,"",0]],
+  blue:[["N","",30,"",0],["R","",35,"",0],["SR","",20,"",0],["SSR","",10,"",0],["UR","",5,"",0]],
+  redBonus:[["N","",70,"",0],["R","",20,"",0],["SR","",5,"",0],["SSR","",3,"",0],["UR","",2,"",0]],
+  blueBonus:[["N","",5,"",0],["R","",15,"",0],["SR","",20,"",0],["SSR","",20,"",0],["UR","",40,"",0]]
+};
+const DEFAULT_GACHAS={
+  red:{name:"赤がちゃ",comment:"さあ行こーか",rules:"",openMode:"open",startAt:"",endAt:"",autoWeekday:1,autoTime:"18:00",autoReleaseAt:"",ceiling:{enabled:false,slotCount:1,items:[{draws:40,rarity:"SSR",reward:"",materialId:"",materialQty:0},{draws:80,rarity:"UR",reward:"",materialId:"",materialQty:0}],progress:0}},
+  blue:{name:"青がちゃ",comment:"まだあわてるような時間じゃない",rules:"",openMode:"open",startAt:"",endAt:"",autoWeekday:1,autoTime:"18:00",autoReleaseAt:"",ceiling:{enabled:false,slotCount:1,items:[{draws:40,rarity:"SSR",reward:"",materialId:"",materialQty:0},{draws:80,rarity:"UR",reward:"",materialId:"",materialQty:0}],progress:0}}
+};
+const defaults={tickets:0,todayStudy:0,totalStudy:0,lastStudyDate:"",history:[],rewards:[],materials:[],exchangeShop:{name:"",rules:"",recipes:[]},examDate:"2026-10-18",gachaPassword:DEFAULT_GACHA_PASSWORD,resetTime:DEFAULT_RESET_TIME,tables:structuredClone(DEFAULT_TABLES),gachas:structuredClone(DEFAULT_GACHAS)};
+
+/* ===== v41 core: 勉強記録・ミッション・プリセット用データ ===== */
+const PALETTE=["#3975c8","#c93434","#d59b18","#2e9d6b","#7953a6","#e07a3a","#16a3b8","#8b9198"];
+const DEFAULT_CATS=["宅建業法","権利関係","法令上の制限","税・その他","過去問演習","模試"].map((n,i)=>({id:"c"+(i+1),name:n,color:PALETTE[i]}));
+Object.assign(defaults,{categories:structuredClone(DEFAULT_CATS),studyDays:{},studyLog:[],carryMin:0,goalDaily:60,goalWeekly:420,missionCfg:{t1:1,t2:1,t3:2,tb:2,bonusReward:"",bonusRarity:"SR"},missionClaims:{},presets:[]});
+const rowObj=a=>({rarity:a[0],reward:a[1],probability:a[2],materialId:a[3],materialQty:a[4]});
+const DK=/^\d{4}-\d{2}-\d{2}$/;
+function normalizeState(s){
+  const x=normalizeStateBase(s),r=s||{};
+  const cats=(Array.isArray(r.categories)?r.categories:[]).map((c,i)=>({id:String(c&&c.id||"c"+(i+1)),name:String(c&&c.name||"").slice(0,16),color:/^#[0-9a-f]{6}$/i.test(c&&c.color)?c.color:PALETTE[i%PALETTE.length]})).filter(c=>c.name);
+  x.categories=cats.length?cats:clone(DEFAULT_CATS);
+  const sd={};
+  for(const[k,v]of Object.entries(r.studyDays||{})){if(!DK.test(k)||!v||typeof v!=="object")continue;const o={};for(const[c,m]of Object.entries(v)){const n=Math.floor(Number(m)||0);if(n>0)o[c]=n}if(Object.keys(o).length)sd[k]=o}
+  x.studyDays=sd;
+  x.studyLog=(Array.isArray(r.studyLog)?r.studyLog:[]).map(l=>({id:String(l.id||makeId("sl")),dk:String(l.dk||""),cat:String(l.cat||""),min:Math.max(0,Math.floor(Number(l.min)||0)),t:Number(l.t)||0,gain:Math.max(0,Number(l.gain)||0)})).filter(l=>l.min>0).slice(-80);
+  x.carryMin=Math.min(29,Math.max(0,Math.floor(Number(r.carryMin)||0)));
+  x.goalDaily=Math.min(1440,Math.max(0,Math.floor(r.goalDaily===undefined?60:Number(r.goalDaily)||0)));
+  x.goalWeekly=Math.min(10080,Math.max(0,Math.floor(r.goalWeekly===undefined?420:Number(r.goalWeekly)||0)));
+  const mc=r.missionCfg||{},g=(k,d)=>Math.min(99,Math.max(0,Math.floor(mc[k]===undefined?d:Number(mc[k])||0)));
+  x.missionCfg={t1:g("t1",1),t2:g("t2",1),t3:g("t3",2),tb:g("tb",2),bonusReward:String(mc.bonusReward||"").slice(0,20),bonusRarity:["SR","SSR","UR"].includes(mc.bonusRarity)?mc.bonusRarity:"SR"};
+  const mcl={};for(const[k,v]of Object.entries(r.missionClaims||{}))if(DK.test(k)&&Array.isArray(v))mcl[k]=v.map(String);
+  x.missionClaims=mcl;
+  x.presets=(Array.isArray(r.presets)?r.presets:[]).filter(p=>p&&Array.isArray(p.main)&&p.main.length===5).slice(0,20).map(p=>({id:String(p.id||makeId("pr")),name:String(p.name||"プリセット").slice(0,30),savedAt:String(p.savedAt||""),from:p.from==="blue"?"blue":"red",g:{name:String(p.g&&p.g.name||"").slice(0,30),comment:String(p.g&&p.g.comment||""),rules:String(p.g&&p.g.rules||""),ceiling:normalizeCeiling(p.g&&p.g.ceiling)},main:p.main.map(normalizeTableRow).filter(Boolean).map(rowObj),bonus:(Array.isArray(p.bonus)?p.bonus:[]).map(normalizeTableRow).filter(Boolean).map(rowObj)}));
+  return x;
+}
+
+function clone(v){return structuredClone(v)}
+function normalizeCeiling(c){
+  const x=(c&&typeof c==="object")?c:{};
+  const slotCount=Number(x.slotCount)===2?2:1;
+  const rawItems=Array.isArray(x.items)?x.items:[];
+  const items=[0,1].map((i)=>{
+    const it=rawItems[i]&&typeof rawItems[i]==="object"?rawItems[i]:{};
+    const fallback=i===0?40:80;
+    return {draws:Math.max(1,Math.floor(Number(it.draws)||fallback)),rarity:String(it.rarity||"SSR"),reward:String(it.reward||"").slice(0,20),materialId:String(it.materialId||""),materialQty:Math.max(0,Math.floor(Number(it.materialQty)||0))};
+  });
+  return {enabled:x.enabled===true,slotCount,items,progress:Math.max(0,Math.floor(Number(x.progress)||0))};
+}
+
+function normalizeTableRow(x){
+  if(Array.isArray(x)) return [String(x[0]||""),String(x[1]??""),Number(x[2])||0,String(x[3]||""),Math.max(0,Number(x[4])||0)];
+  if(x&&typeof x==="object") return [String(x.rarity||""),String(x.reward??x.bonus??x.amount??""),Number(x.probability)||0,String(x.materialId||""),Math.max(0,Number(x.materialQty)||0)];
+  return null;
+}
+function decodeTables(tables){const out={};for(const key of Object.keys(DEFAULT_TABLES)){const v=(tables||{})[key];if(Array.isArray(v))out[key]=v.map(normalizeTableRow).filter(Boolean);else if(v&&typeof v==="object")out[key]=Object.keys(v).sort((a,b)=>Number(a)-Number(b)).map(k=>normalizeTableRow(v[k])).filter(Boolean);}return out;}
+function encodeTables(tables){const out={};for(const key of Object.keys(DEFAULT_TABLES))out[key]=(tables[key]||[]).map(x=>({rarity:String(x[0]||""),reward:String(x[1]||""),probability:Number(x[2])||0,materialId:String(x[3]||""),materialQty:Math.max(0,Number(x[4])||0)}));return out;}
+function makeId(prefix){return prefix+"_"+Date.now().toString(36)+"_"+Math.random().toString(36).slice(2,9);}
+function normalizeMaterials(list){return (Array.isArray(list)?list:[]).map(m=>({id:String(m.id||makeId("mat")),name:String(m.name||"").slice(0,40),unit:String(m.unit||"").slice(0,20),balance:Math.max(0,Number(m.balance)||0)})).filter(m=>m.name);}
+function normalizeExchangeShop(shop){const x=shop&&typeof shop==="object"?shop:{};const recipes=Array.isArray(x.recipes)?x.recipes:[];return {name:"素材・交換所",rules:String(x.rules||""),recipes:recipes.map(r=>({id:String(r.id||makeId("ex")),name:String(r.name||"").slice(0,40),requirements:(Array.isArray(r.requirements)?r.requirements:[]).slice(0,3).map(q=>({materialId:String(q.materialId||""),qty:Math.max(0,Number(q.qty)||0)})),outputs:(Array.isArray(r.outputs)?r.outputs:[]).slice(0,3).map(o=>({reward:String(o.reward||"").slice(0,20),rarity:["N","R","SR","SSR","UR"].includes(o.rarity)?o.rarity:"SR",qty:Math.max(1,Math.floor(Number(o.qty)||1))}))})).filter(r=>r.name||r.requirements.some(q=>q.materialId&&q.qty>0)||r.outputs.some(o=>o.reward))};}
+function toFirestoreState(s){const x=clone(s);x.tables=encodeTables(s.tables);x.gachas={...clone(DEFAULT_GACHAS),...(s.gachas||{})};for(const k of ["red","blue"]){const g=x.gachas[k]||{};const c=normalizeCeiling(g.ceiling);x.gachas[k]={name:String(g.name||DEFAULT_GACHAS[k].name).slice(0,30),comment:String(g.comment??DEFAULT_GACHAS[k].comment),rules:String(g.rules??DEFAULT_GACHAS[k].rules??""),openMode:["open","closed","period","auto"].includes(g.openMode)?g.openMode:"open",startAt:String(g.startAt||((g.openMode==="auto")?g.autoReleaseAt||"":"")),endAt:String(g.endAt||""),autoWeekday:Math.min(6,Math.max(0,Number.isInteger(Number(g.autoWeekday))?Number(g.autoWeekday):1)),autoTime:/^([01]\d|2[0-3]):[0-5]\d$/.test(String(g.autoTime||""))?String(g.autoTime):"18:00",autoReleaseAt:String(g.autoReleaseAt||""),ceiling:{enabled:c.enabled,slotCount:c.slotCount,items:c.items,progress:c.progress}}}x.history=(Array.isArray(s.history)?s.history:[]).map(h=>({time:String(h.time||""),dateKey:String(h.dateKey||""),type:String(h.type||""),sourceType:String(h.sourceType||"gacha"),sourceName:String(h.sourceName||h.gachaName||"").slice(0,40),gachaName:String(h.gachaName||"").slice(0,30),drawNo:Number(h.drawNo)||0,rarity:String(h.rarity||"N"),reward:String(h.reward??h.bonus??"").slice(0,20),paid:Boolean(h.paid)}));x.rewards=(Array.isArray(s.rewards)?s.rewards:[]).map(r=>({id:String(r.id||makeId("rew")),time:String(r.time||""),dateKey:String(r.dateKey||""),type:String(r.type||""),sourceType:String(r.sourceType||"gacha"),sourceName:String(r.sourceName||r.gachaName||"").slice(0,40),gachaName:String(r.gachaName||"").slice(0,30),rarity:String(r.rarity||""),reward:String(r.reward||"").slice(0,20),materialId:String(r.materialId||""),materialQty:Math.max(0,Number(r.materialQty)||0),tableIndex:Number.isInteger(Number(r.tableIndex))?Number(r.tableIndex):-1,used:Boolean(r.used)}));x.materials=normalizeMaterials(s.materials);x.exchangeShop=normalizeExchangeShop(s.exchangeShop);x.tickets=Number(s.tickets)||0;x.todayStudy=Number(s.todayStudy)||0;x.totalStudy=Number(s.totalStudy)||0;x.examDate=String(s.examDate||"2026-10-18");x.gachaPassword=String(s.gachaPassword||DEFAULT_GACHA_PASSWORD);x.lastStudyDate=String(s.lastStudyDate||"");x.resetTime=/^([01]\d|2[0-3]):[0-5]\d$/.test(String(s.resetTime||""))?String(s.resetTime):DEFAULT_RESET_TIME;return x;}
+function normalizeStateBase(s){const raw=clone(s||{});const sourceTables=raw.tables||{};const legacyAmountFormat=Object.values(sourceTables).some(v=>Array.isArray(v)&&v.some(x=>x&&typeof x==="object"&&!Array.isArray(x)&&Object.prototype.hasOwnProperty.call(x,"amount")&&!Object.prototype.hasOwnProperty.call(x,"reward")));const decodedTables=legacyAmountFormat?{}:decodeTables(raw.tables);delete raw.tables;delete raw.winnings;const x={...clone(defaults),...raw};x.history=Array.isArray(x.history)?x.history.map(h=>({...h,reward:String(h.reward??h.bonus??"").slice(0,20),sourceType:String(h.sourceType||"gacha"),sourceName:String(h.sourceName||h.gachaName||"").slice(0,40)})):[];x.rewards=Array.isArray(x.rewards)?x.rewards.map(r=>({...r,reward:String(r.reward||"").slice(0,20),used:Boolean(r.used),sourceType:String(r.sourceType||"gacha"),sourceName:String(r.sourceName||r.gachaName||"").slice(0,40),materialId:String(r.materialId||""),materialQty:Math.max(0,Number(r.materialQty)||0),tableIndex:Number.isInteger(Number(r.tableIndex))?Number(r.tableIndex):-1})):[];x.tables={...clone(DEFAULT_TABLES),...decodedTables};for(const k of Object.keys(DEFAULT_TABLES)){const t=x.tables[k];const valid=Array.isArray(t)&&t.length===5&&t.every(r=>Array.isArray(r)&&r.length>=3&&r[0]&&r[0]!=="undefined"&&typeof r[1]==="string"&&r[1].length<=20&&Number.isFinite(Number(r[2]))&&r[2]>=0)&&Math.abs(t.reduce((a,r)=>a+Number(r[2]),0)-100)<.001;if(!valid)x.tables[k]=clone(DEFAULT_TABLES[k]);else x.tables[k]=t.map(normalizeTableRow)}x.rewards=x.rewards.map(r=>{
+  if(r.sourceType!=="gacha"||!r.reward)return r;
+  if(r.materialId&&Number(r.materialQty)>0)return r;
+  const table=Array.isArray(x.tables[r.type])?x.tables[r.type]:[];
+  const ti=Number(r.tableIndex);
+  const slot=(Number.isInteger(ti)&&ti>=0&&ti<table.length)?table[ti]:null;
+  if(slot&&slot[3]&&Number(slot[4])>0){r.materialId=String(slot[3]);r.materialQty=Math.max(0,Number(slot[4])||0);return r}
+  const candidates=table.filter(row=>String(row[0]||"")===String(r.rarity||"")&&String(row[1]||"")===String(r.reward||"")&&row[3]&&Number(row[4])>0);
+  if(candidates.length===1){r.materialId=String(candidates[0][3]);r.materialQty=Math.max(0,Number(candidates[0][4])||0)}
+  return r
+});x.gachas={...clone(DEFAULT_GACHAS),...(x.gachas||{})};for(const k of ["red","blue"]){const g=x.gachas[k]||{};const c=normalizeCeiling(g.ceiling);x.gachas[k]={name:String(g.name||DEFAULT_GACHAS[k].name).slice(0,30),comment:String(g.comment??DEFAULT_GACHAS[k].comment),rules:String(g.rules??DEFAULT_GACHAS[k].rules??""),openMode:["open","closed","period","auto"].includes(g.openMode)?g.openMode:"open",startAt:String(g.startAt||((g.openMode==="auto")?g.autoReleaseAt||"":"")),endAt:String(g.endAt||""),autoWeekday:Math.min(6,Math.max(0,Number.isInteger(Number(g.autoWeekday))?Number(g.autoWeekday):1)),autoTime:/^([01]\d|2[0-3]):[0-5]\d$/.test(String(g.autoTime||""))?String(g.autoTime):"18:00",autoReleaseAt:String(g.autoReleaseAt||""),ceiling:c}}
+// 天井ごほうびの素材情報が旧データに無い場合、現在の通常排出枠から一意に復元する。
+for(const k of ["red","blue"]){const c=x.gachas[k]?.ceiling;if(c&&Array.isArray(c.items)){c.items=c.items.map(it=>{if(it.materialId&&Number(it.materialQty)>0)return it;const matches=(x.tables[k]||[]).filter(row=>String(row[0]||"")===String(it.rarity||"")&&String(row[1]||"")===String(it.reward||"")&&row[3]&&Number(row[4])>0);if(matches.length===1){it.materialId=String(matches[0][3]);it.materialQty=Math.max(0,Number(matches[0][4])||0)}return it})}}x.materials=normalizeMaterials(x.materials);x.exchangeShop=normalizeExchangeShop(x.exchangeShop);x.tickets=Math.max(0,Number(x.tickets)||0);x.todayStudy=Math.max(0,Number(x.todayStudy)||0);x.totalStudy=Math.max(0,Number(x.totalStudy)||0);x.examDate=x.examDate||"2026-10-18";x.gachaPassword=String(x.gachaPassword||DEFAULT_GACHA_PASSWORD);x.resetTime=/^([01]\d|2[0-3]):[0-5]\d$/.test(String(x.resetTime||""))?String(x.resetTime):DEFAULT_RESET_TIME;return x;}
+
+function readLocalSeed(){
+  let s=null;
+  try{s=JSON.parse(localStorage.getItem(KEY)||"null")}catch{}
+  if(!s){
+    try{s=JSON.parse(localStorage.getItem(OLD_KEY)||"null")}catch{}
+  }
+  if(!s)return clone(defaults);
+  s=normalizeState(s);
+  s.history=s.history.map(x=>({...x,dateKey:x.dateKey||dateKeyFromStored(x.time)}));
+  applyStudyDayReset(s);
+  return s;
+}
+
+let state=clone(defaults);
+let cloudReady=false;
+
+function cacheLocal(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}}
+function studyDateKey(d=new Date(), resetTime=DEFAULT_RESET_TIME){const h=Number(String(resetTime||DEFAULT_RESET_TIME).slice(0,2));return jpDateKey(new Date(d.getTime()-h*3600000));}
+function applyStudyDayReset(s){const d=studyDateKey(new Date(),s.resetTime);if(s.lastStudyDate!==d){s.todayStudy=0;s.lastStudyDate=d;return true}return false;}
+function jpDateKey(d=new Date()){
+  return new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",year:"numeric",month:"2-digit",day:"2-digit"}).format(d).replace(/\//g,"-");
+}
+function dateKeyFromStored(s){
+  if(!s)return "";
+  const m=String(s).match(/(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  return m?`${m[1]}-${String(m[2]).padStart(2,"0")}-${String(m[3]).padStart(2,"0")}`:"";
+}
+function examDate(){
+  return new Date(`${state.examDate||"2026-10-18"}T00:00:00+09:00`);
+}
+function fmt(min){return `${Math.floor(min/60)}時間${min%60}分`}
+function getTodayHistory(){const d=jpDateKey();return state.history.filter(x=>(x.dateKey||dateKeyFromStored(x.time))===d)}
+function getDrawCount(){return state.history.length}
+function getDrawCountToday(){return getTodayHistory().length}
+function weighted(t){
+  const arr=Array.isArray(t)?t:[];
+  const normalized=arr.map((x,i)=>{
+    if(Array.isArray(x)) return [String(x[0]||""),String(x[1]??""),Number(x[2])||0,i,String(x[3]||""),Math.max(0,Number(x[4])||0)];
+    if(x&&typeof x==="object") return [String(x.rarity||""),String(x.reward??""),Number(x.probability)||0,i,String(x.materialId||""),Math.max(0,Number(x.materialQty)||0)];
+    return null;
+  }).filter(x=>x&&x[0]&&x[0]!=="なし"&&Number(x[2])>0);
+  if(!normalized.length) throw new Error("INVALID_GACHA_TABLE");
+  const total=normalized.reduce((a,x)=>a+Number(x[2]),0);
+  const r=Math.random()*total; let acc=0;
+  for(const x of normalized){acc+=Number(x[2]);if(r<acc)return x;}
+  return normalized[normalized.length-1];
+}
+function materialOptions(selected="",allowBlank=true){const blank=allowBlank?`<option value="">素材なし</option>`:"";return blank+state.materials.map(m=>`<option value="${escapeHtml(m.id)}" ${m.id===selected?"selected":""}>${escapeHtml(m.name)}</option>`).join("");}
+function materialName(id){return state.materials.find(m=>m.id===id)?.name||"素材";}
+function sourceLabel(x){if(x.sourceType==="exchange")return `🔄 ${x.sourceName||"交換所"}`;const icon=x.type==="red"?"🔴":x.type==="blue"?"🔵":"🎁";return `${icon} ${x.sourceName||x.gachaName||"がちゃ"}`;}
+function isBoxReward(rarity,materialId,materialQty){return ["SR","SSR","UR"].includes(String(rarity||"")) || Boolean(materialId&&Number(materialQty)>0);}
+function resolveDrawMaterial(s,type,result){
+  const row=Array.isArray(s.tables?.[type])?s.tables[type][Number(result.tableIndex)]:null;
+  if(row&&row[3]&&Number(row[4])>0)return {materialId:String(row[3]),materialQty:Math.max(0,Number(row[4])||0)};
+  return {materialId:String(result.materialId||""),materialQty:Math.max(0,Number(result.materialQty)||0)};
+}
+function makeRewardFromExchange(output,sourceName,time,dateKey){return {id:makeId("rew"),time,dateKey,type:"exchange",sourceType:"exchange",sourceName, gachaName:"",rarity:output.rarity,reward:output.qty>1?`${output.reward} ×${output.qty}`:output.reward,materialId:"",materialQty:0,used:false};}
+
+function setCloudStatus(text){
+  const el=document.getElementById("cloudStatus");
+  if(el)el.textContent=text;
+}
+
+function withTimeout(promise,ms,label="処理") {
+  let timer;
+  const timeout=new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(`${label}がタイムアウトしました（${ms/1000}秒）`)),ms)});
+  return Promise.race([promise.finally(()=>clearTimeout(timer)),timeout]);
+}
+
+function nextWeekdayDate(weekday,time){const now=new Date();const [hh,mm]=String(time||"18:00").split(":").map(Number);const d=new Date(now);d.setSeconds(0,0);d.setHours(hh||0,mm||0,0,0);let delta=(Number(weekday)-d.getDay()+7)%7;if(delta===0 && d<=now)delta=7;d.setDate(d.getDate()+delta);return d.toISOString();}
+function isGachaOpen(type,g=state.gachas[type]){if(!g)return false;if(g.openMode==="open")return true;if(g.openMode==="closed")return false;if(g.openMode==="period"){const st=Date.parse(String(g.startAt||"")),en=Date.parse(String(g.endAt||""));return Number.isFinite(st)&&Number.isFinite(en)&&Date.now()>=st&&Date.now()<=en;}if(g.openMode==="auto"){const at=Date.parse(String(g.autoReleaseAt||""));return Number.isFinite(at)&&Date.now()>=at;}return false;}
+function weekdayLabel(n){return ["日","月","火","水","木","金","土"][Number(n)]||"月";}
+function formatDateTime(v){const d=new Date(v);if(!Number.isFinite(d.getTime()))return "";return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,"0")}/${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;}
+function gachaOpenLabel(type){const g=state.gachas[type];if(isGachaOpen(type,g))return "開放中";if(g.openMode==="period"){const st=String(g.startAt||""),en=String(g.endAt||"");if(st&&en)return `🔒 ${formatDateTime(st)}〜${formatDateTime(en)}`;return "🔒 開催期間が未設定です";}if(g.openMode==="auto"){const at=Date.parse(String(g.autoReleaseAt||""));if(Number.isFinite(at)){const d=new Date(at);const md=new Intl.DateTimeFormat("ja-JP",{timeZone:"Asia/Tokyo",month:"numeric",day:"numeric"}).format(d);return `🔒 ${md}（${weekdayLabel(d.getDay())}）${g.autoTime}から開放`;}return `🔒 ${weekdayLabel(g.autoWeekday)}曜日 ${g.autoTime}から開放予定`;}return "🔒 予告中・現在は引けません";}
+
+function renderBase(){
+  document.getElementById("redName").textContent="🔴 "+state.gachas.red.name;document.getElementById("redComment").textContent=state.gachas.red.comment;document.querySelector(".gacha.red").classList.toggle("closed",!isGachaOpen("red"));document.getElementById("blueName").textContent="🔵 "+state.gachas.blue.name;document.getElementById("blueComment").textContent=state.gachas.blue.comment;document.querySelector(".gacha.blue").classList.toggle("closed",!isGachaOpen("blue"));
+  document.getElementById("tickets").textContent=state.tickets+"枚";
+  document.getElementById("todayStudy").textContent=state.todayStudy+"分";
+  document.getElementById("totalStudy").textContent=fmt(state.totalStudy);
+  const diff=examDate()-new Date();
+  document.getElementById("countdown").textContent=diff<=0?"合格待ち":Math.ceil(diff/86400000)+"日";
+  for(const type of ["red","blue"]){const open=isGachaOpen(type);const one=document.getElementById(type+"1"),ten=document.getElementById(type+"10");one.disabled=!open||state.tickets<1;ten.disabled=!open||state.tickets<10;}
+}
+
+function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));}
+
+function openModal(html){document.getElementById("modalBody").innerHTML=html;document.getElementById("modal").classList.add("show")}
+function closeModal(){document.getElementById("modal").classList.remove("show");document.getElementById("modalBody").innerHTML=""}
+
+// 共通OKボタン：動的に生成されるモーダルにも確実に反応させる
+document.getElementById("modalBody").addEventListener("click",e=>{
+  if(e.target.id==="modalCloseBtn") closeModal();
+});
+
+async function ensureCloudState(){
+  setCloudStatus("☁️ Firebase接続中…");
+  const seed=readLocalSeed();
+  const result=await withTimeout(runTransaction(db,async tx=>{
+    const snap=await readTx(tx);
+    if(snap.exists()){
+      const rawCurrent=snap.data();
+      const current=normalizeState(rawCurrent);
+      const changed=applyStudyDayReset(current);
+      const normalizedRewards=JSON.stringify(toFirestoreState(current).rewards||[]);
+      const rawRewards=JSON.stringify(rawCurrent.rewards||[]);
+      if(changed||normalizedRewards!==rawRewards)writeTx(tx,toFirestoreState(current));
+      return current;
+    }
+    applyStudyDayReset(seed);
+    writeTx(tx,toFirestoreState(seed));
+    return seed;
+  }),10000,"Firebase接続");
+  state=normalizeState(result);
+  cloudReady=true;
+  cacheLocal();
+  setCloudStatus("☁️ データ共有中");
+  render();
+}
+
+async function refreshCloud(){
+  const snap=await withTimeout(readMerged(),8000,"Firebase接続");
+  if(!snap.exists()){
+    await ensureCloudState();
+    return;
+  }
+  const rawCloud=snap.data();
+  const before=JSON.stringify(rawCloud.tables||null);
+  const beforeRewards=JSON.stringify(rawCloud.rewards||[]);
+  state=normalizeState(rawCloud);
+  const resetChanged=applyStudyDayReset(state);
+  const after=JSON.stringify(encodeTables(state.tables));
+  const afterRewards=JSON.stringify(toFirestoreState(state).rewards||[]);
+  cloudReady=true;
+  cacheLocal();
+  setCloudStatus("☁️ データ共有中");
+  render();
+  // If the old Firebase data had the broken undefined/0 table format,
+  // repair it once using the intended default tables.
+  if(before!==after || beforeRewards!==afterRewards || resetChanged){
+    await updateCloud(()=>state);
+  }
+}
+
+async function updateCloud(mutator){
+  if(!cloudReady)throw new Error("Firebaseに接続できていません");
+  const result=await runTransaction(db,async tx=>{
+    const snap=await readTx(tx);
+    const current=normalizeState(snap.exists()?snap.data():state);
+    const base=normalizeState(current);applyStudyDayReset(base);const updated=normalizeState(await mutator(base));
+    writeTx(tx,toFirestoreState(updated));
+    return updated;
+  });
+  state=normalizeState(result);
+  cacheLocal();
+  render();
+  return state;
+}
+
+document.getElementById("studyBtn").onclick=()=>openStudyModal();
+let lastCat="";
+function openStudyModal(){
+  const cats=state.categories;if(!cats.some(c=>c.id===lastCat))lastCat=cats[0].id;
+  let mins=30;
+  openModal(`<h2>勉強を記録</h2><div class="chips" id="studyCats"></div><div class="bigNum" id="studyAmount"></div><div class="qBtns" id="studyQ"><button data-a="-5">−5</button><button data-a="5">＋5</button><button data-a="10">＋10</button><button data-a="30">＋30</button><button data-a="60">＋60</button></div><p id="studyTickets" style="margin:12px 0 0;font-size:13px"></p><div class="modalBtns"><button class="cancel" id="studyNo">やめる</button><button class="ok" id="studyYes">記録する</button></div>`);
+  const upd=()=>{
+    document.getElementById("studyCats").innerHTML=cats.map(c=>`<button type="button" class="chip ${c.id===lastCat?"on":""}" data-c="${escapeHtml(c.id)}" style="--cc:${c.color}">${escapeHtml(c.name)}</button>`).join("");
+    document.getElementById("studyAmount").textContent=fmtM(mins);
+    const sum=state.carryMin+mins;
+    document.getElementById("studyTickets").innerHTML=`🎫 獲得：<b>${Math.floor(sum/30)}枚</b>（端数${sum%30}分は次回に持ち越し）`;
+  };
+  document.getElementById("studyCats").onclick=e=>{const b=e.target.closest("[data-c]");if(b){lastCat=b.dataset.c;upd()}};
+  document.getElementById("studyQ").onclick=e=>{const a=e.target.dataset.a;if(a){mins=Math.max(5,Math.min(900,mins+Number(a)));upd()}};
+  document.getElementById("studyNo").onclick=closeModal;
+  upd();
+  document.getElementById("studyYes").onclick=async()=>{
+    const btn=document.getElementById("studyYes");btn.disabled=true;let gain=0;
+    try{
+      await updateCloud(s=>{
+        const d=studyDateKey(new Date(),s.resetTime),cat=s.categories.some(c=>c.id===lastCat)?lastCat:s.categories[0].id;
+        s.todayStudy+=mins;s.totalStudy+=mins;
+        const sum=s.carryMin+mins;gain=Math.floor(sum/30);s.carryMin=sum%30;s.tickets+=gain;
+        const day=(s.studyDays[d]=s.studyDays[d]||{});day[cat]=(day[cat]||0)+mins;
+        s.studyLog.push({id:makeId("sl"),dk:d,cat,min:mins,t:Date.now(),gain});
+        if(s.studyLog.length>80)s.studyLog.splice(0,s.studyLog.length-80);
+        return s;
+      });
+      const can=missionList(state,todayKey()).some(m=>m.done&&!m.claimed);
+      openModal(`<div class="result"><div class="rarity">${gain?"🎫":"📝"}</div><div class="reward">${fmtM(mins)} 記録しました！<br>${gain?`回数券${gain}枚獲得`:`あと${30-state.carryMin}分で次の1枚`}</div>${can?'<div class="gTag">🎯 受け取れるミッションがあります</div>':""}</div><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+    }catch(err){
+      console.error(err);
+      openModal(`<h2>保存できませんでした</h2><p>Firebaseへの接続でエラーが発生しました。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+    }
+  };
+}
+
+function requestGachaAccess(type,count){
+  if(!isGachaOpen(type)){const g=state.gachas[type];let msg="このガチャは現在引けません。<br><br>開催期間をご確認ください。";if(g.openMode==="period"&&g.startAt&&g.endAt)msg=`このガチャの開催期間は<br><br><b>${formatDateTime(g.startAt)}〜${formatDateTime(g.endAt)}</b><br><br>です。`;else if(g.openMode==="auto")msg=`このガチャは予告中です。<br><br><b>${weekdayLabel(g.autoWeekday)}曜日 ${g.autoTime}から開放</b>予定です。`;openModal(`<h2>${escapeHtml(g.name)}</h2><p>🔒 ${msg}</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return;}
+  if(state.tickets<count)return;
+  if(DEBUG_MODE){confirmDraw(type,count);return;}
+  openModal(`<h2>🔐 ガチャを引く</h2><p>宅建チャレンジ参加者用のパスワードを入力してください。</p><input id="gachaPw" name="password" type="password" autocomplete="current-password" placeholder="パスワード"><div class="modalBtns"><button class="cancel" id="gachaCancel">キャンセル</button><button class="ok" id="gachaLogin">認証して進む</button></div>`);
+  const pw=document.getElementById("gachaPw");
+  setTimeout(()=>pw?.focus(),50);
+  document.getElementById("gachaCancel").onclick=closeModal;
+  document.getElementById("gachaLogin").onclick=()=>{
+    if(pw.value===state.gachaPassword){
+      closeModal();
+      confirmDraw(type,count);
+    }else{
+      openModal(`<h2>パスワードが違います</h2><p>もう一度入力してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+    }
+  };
+}
+
+function confirmDraw(type,count){
+  if(!isGachaOpen(type)){requestGachaAccess(type,count);return;}
+  if(state.tickets<count)return;
+  const name=(type==="red"?"🔴 ":"🔵 ")+state.gachas[type].name;
+  openModal(`<h2>${escapeHtml(name)}</h2><p>🎫 回数券を${count}枚使います。<br>${count===10?"10連＋1を引きます。":"1連を引きます。"}<br><br><b>引きますか？</b></p><div class="modalBtns"><button class="cancel" id="drawNo">やめる</button><button class="ok" id="drawYes">ガチャを引く！</button></div>`);
+  document.getElementById("drawNo").onclick=closeModal;
+  document.getElementById("drawYes").onclick=()=>doDraw(type,count);
+}
+
+function ceilingForNextDraw(g){
+  const c=normalizeCeiling(g?.ceiling);
+  if(!c.enabled)return null;
+  const items=c.items.slice(0,c.slotCount).filter(x=>x&&Number(x.draws)>0&&x.reward);
+  if(!items.length)return null;
+  // 天井は「設定した回数そのもの」に到達した回だけ発動する。
+  // 例：40回・80回なら、40/80/120/160…でのみ発動し、それ以外は通常抽選。
+  const cycle=Math.max(...items.map(x=>Number(x.draws)));
+  const nextDraw=Number(c.progress||0)+1;
+  const nextPos=((nextDraw-1)%cycle)+1;
+  const target=items.find(x=>Number(x.draws)===nextPos);
+  if(!target)return null;
+  return {index:c.items.indexOf(target),rarity:target.rarity||"SSR",reward:target.reward,materialId:String(target.materialId||""),materialQty:Math.max(0,Number(target.materialQty)||0),slotCount:c.slotCount};
+}
+
+async function doDraw(type,count){
+  closeModal();
+  try{
+    const result=await runTransaction(db,async tx=>{
+      const snap=await readTx(tx);
+      const s=normalizeState(snap.exists()?snap.data():state);
+      if(s.tickets<count)throw new Error("NOT_ENOUGH_TICKETS");
+      if(!isGachaOpen(type,s.gachas[type]))throw new Error("GACHA_CLOSED");
+      const dateKey=jpDateKey(), time=new Date().toLocaleString("ja-JP");
+      const results=[];
+      const ceiling=normalizeCeiling(s.gachas[type]?.ceiling);
+      let progress=ceiling.progress;
+      const drawOne=(drawNo,paid)=>{
+        const nextProgress=progress+1;
+        const guaranteed=ceilingForNextDraw({...s.gachas[type],ceiling:{...ceiling,progress}});
+        progress=nextProgress;
+        // 天井回以外は、通常の排出設定または11回目専用確率で抽選する。
+        // 天井のごほうびを通常抽選へ混ぜることは絶対にしない。
+        if(guaranteed){
+          return {rarity:guaranteed.rarity||"SSR",reward:String(guaranteed.reward||"").slice(0,20),materialId:String(guaranteed.materialId||""),materialQty:Math.max(0,Number(guaranteed.materialQty)||0),tableIndex:-1,drawNo,paid,ceiling:true};
+        }
+        const tableKey=(drawNo===11 && count===10)?type+"Bonus":type;
+        const x=weighted(s.tables[tableKey]);
+        // 11回目専用テーブルは確率だけを持つため、選ばれたスロットと
+        // 同じ通常テーブルのスロットからレアリティ・ごほうびを取得する。
+        if(drawNo===11 && count===10){
+          const base=Array.isArray(s.tables[type])?s.tables[type]:[];
+          const baseSlot=base[x[3]];
+          const meta=resolveDrawMaterial(s,type,{tableIndex:x[3],materialId:baseSlot?.[3],materialQty:baseSlot?.[4]});
+          return {rarity:String(baseSlot?.[0]||x[0]),reward:String(baseSlot?.[1]||"").slice(0,20),materialId:meta.materialId,materialQty:meta.materialQty,tableIndex:x[3],drawNo,paid,ceiling:false};
+        }
+        const meta=resolveDrawMaterial(s,type,{tableIndex:x[3],materialId:x[3],materialQty:x[4]});
+        return {rarity:x[0],reward:String(x[1]||"").slice(0,20),materialId:meta.materialId,materialQty:meta.materialQty,tableIndex:x[3]===undefined?-1:x[3],drawNo,paid,ceiling:false};
+      };
+      for(let i=0;i<count;i++)results.push(drawOne(i+1,true));
+      if(count===10)results.push(drawOne(11,false));
+      s.gachas[type].ceiling=ceiling;
+      s.gachas[type].ceiling.progress=progress;
+      s.tickets-=count;
+      results.forEach(x=>{
+        const gachaName=String(s.gachas[type]?.name||"").slice(0,30);
+        const material=resolveDrawMaterial(s,type,x);
+        x.materialId=material.materialId;x.materialQty=material.materialQty;
+        s.history.push({time,dateKey,type,sourceType:"gacha",sourceName:gachaName,gachaName,drawNo:x.drawNo,rarity:x.rarity,reward:x.reward,paid:x.paid});
+        if(x.reward && isBoxReward(x.rarity,x.materialId,x.materialQty)){
+          s.rewards.push({id:makeId("rew"),time,dateKey,type,sourceType:"gacha",sourceName:gachaName,gachaName,rarity:x.rarity,reward:x.reward,materialId:String(x.materialId||""),materialQty:Math.max(0,Number(x.materialQty)||0),tableIndex:Number.isInteger(Number(x.tableIndex))?Number(x.tableIndex):-1,used:false});
+        }
+      });
+      writeTx(tx,toFirestoreState(s));
+      return {state:s,results};
+    });
+    state=normalizeState(result.state);
+    cloudReady=true;
+    cacheLocal();
+    render();
+    showResults(result.results,0);
+  }catch(err){
+    console.error(err);
+    if(err.message==="GACHA_CLOSED"){
+      await refreshCloud();
+      openModal(`<h2>現在は引けません</h2><p>このガチャは予告中です。<br>${escapeHtml(gachaOpenLabel(type))}</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+    }else if(err.message==="NOT_ENOUGH_TICKETS"){
+      await refreshCloud();
+      openModal(`<h2>回数券が足りません</h2><p>別の端末で回数券が使われた可能性があります。最新の状態に更新しました。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+    }else if(err.message==="INVALID_GACHA_TABLE"){
+      openModal(`<h2>ガチャ設定を読み込めません</h2><p>ガチャの排出設定の形式を修復する必要があります。</p><p>管理画面の確率設定を初期値に戻す処理を行います。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+    }else{
+      openModal(`<h2>ガチャを保存できませんでした</h2><p>Firebaseへの接続でエラーが発生しました。</p><p style="font-size:12px;text-align:left;word-break:break-word;background:#111;padding:10px;border-radius:8px;">${escapeHtml((err && (err.code || err.message)) ? ((err.code||"") + " " + (err.message||"")) : String(err))}</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+    }
+  }
+}
+
+const RO=["N","R","SR","SSR","UR"];
+function stageHtml(x){
+  const cls=x.rarity.toLowerCase(),shk={n:.6,r:.7,sr:1.1,ssr:1.6,ur:2}[cls]||.7,rv=(.5+shk+.1).toFixed(2),n={sr:10,ssr:22,ur:40}[cls]||0,cols=["#ffd54a","#ff6b6b","#4dc3ff","#7be495","#c792ea"];
+  let cf="";for(let k=0;k<n;k++){const a=Math.random()*6.283,d=70+Math.random()*90;cf+=`<i class="cf" style="--x:${Math.round(Math.cos(a)*d*1.3)}px;--y:${Math.round(Math.sin(a)*d)}px;--c:${cols[k%5]};--d:${rv}s"></i>`}
+  return `<div class="gStage ${cls}" style="--shk:${shk}s;--rv:${rv}s"><div class="capsule"></div><div class="gFlash"></div>${cf}<div class="gRes"><div class="rarity ${cls}">${escapeHtml(x.rarity)}</div><div class="reward">${escapeHtml(x.reward)}</div>${x.ceiling?'<div class="gTag">🎯 天井到達！</div>':""}</div></div>`;
+}
+function showResults(rs,i=0){
+  if(!Array.isArray(rs)||!rs.length){closeModal();return}
+  const multi=rs.length===11;
+  if(i>=rs.length){
+    if(!multi){closeModal();return}
+    const best=rs.reduce((b,x)=>RO.indexOf(x.rarity)>RO.indexOf(b)?x.rarity:b,"N");
+    const items=rs.map((x,idx)=>`<div class="rewardRow ${idx===10?"eleven":""}"><div class="rno">${idx+1}回目</div><div class="rrarity ${x.rarity.toLowerCase()}">${escapeHtml(x.rarity)}</div><div class="rtext">${escapeHtml(x.reward)}</div></div>`).join("");
+    openModal(`<h2>10連＋1 結果</h2><div class="note" style="margin:0 0 6px">最高レアリティ：<b class="${best.toLowerCase()}">${best}</b></div><div class="rewardList">${items}</div><button class="singleBtn" id="modalCloseBtn">閉じる</button>`);
+    return;
+  }
+  const x=rs[i],cls=x.rarity.toLowerCase(),last=i===rs.length-1;
+  openModal((multi?`<div class="resultNo">${i+1} / 11回目${i===10?"（ボーナス）":""}</div>`:"")+stageHtml(x)+(multi?`<button class="singleBtn" id="nextDrawResult">${last?"結果一覧を見る":"次へ"}</button>${last?"":'<button class="skipAll" id="skipAll">結果一覧へスキップ</button>'}`:'<button class="singleBtn" id="modalCloseBtn">OK</button>'));
+  const st=document.querySelector(".gStage");
+  st.onclick=()=>st.classList.add("done");
+  if(multi){
+    document.getElementById("nextDrawResult").onclick=()=>showResults(rs,i+1);
+    const sk=document.getElementById("skipAll");if(sk)sk.onclick=()=>showResults(rs,11);
+  }
+  if(cls==="ssr"||cls==="ur")setTimeout(()=>{try{if(st.isConnected&&navigator.vibrate)navigator.vibrate([60,40,140])}catch{}},(cls==="ur"?2.6:2.2)*1000);
+}
+
+document.getElementById("red1").onclick=()=>requestGachaAccess("red",1);
+document.getElementById("blue1").onclick=()=>requestGachaAccess("blue",1);
+document.getElementById("red10").onclick=()=>requestGachaAccess("red",10);
+document.getElementById("blue10").onclick=()=>requestGachaAccess("blue",10);
+
+function detail(html){
+  const d=document.getElementById("detail");d.innerHTML=html;d.classList.add("open");
+  document.getElementById("admin").classList.remove("open");
+}
+function tableHtml(type,title){const g=state.gachas[type]||{};const rules=String(g.rules||"").trim();const c=normalizeCeiling(g.ceiling);const progressText=`現在のがちゃ回数：${c.progress}回`;return `<h3>${title}</h3><table class="probtable"><thead><tr><th>レアリティ</th><th>ごほうび</th><th>排出確率</th></tr></thead><tbody>${state.tables[type].map(x=>{const cls=String(x[0]||"").toLowerCase();return `<tr><td><span class="rarityBadgeSmall ${cls}">${escapeHtml(x[0])}</span></td><td>${escapeHtml(x[1])}</td><td>${x[2]}%</td></tr>`}).join("")}</tbody></table><div class="note">※表示しているのは通常の1連の排出確率です。10連＋1の11回目は別設定です。</div>${rules?`<div class="gachaRules">${escapeHtml(rules)}</div>`:""}<div class="gachaProgress">${progressText}</div>`}
+document.getElementById("redDetailBtn").onclick=()=>detail(tableHtml("red","🔴 "+state.gachas.red.name+" 詳細"));document.getElementById("blueDetailBtn").onclick=()=>detail(tableHtml("blue","🔵 "+state.gachas.blue.name+" 詳細"));
+document.getElementById("historyBtn").onclick=()=>{let h=state.history.slice().reverse().map(x=>{const savedName=x.sourceName||x.gachaName||(x.type==="red"?"赤がちゃ":"青がちゃ");const icon=x.sourceType==="exchange"?"🔄":x.type==="red"?"🔴":"🔵";return `<div class="row"><span>${escapeHtml(x.time)}<br>${icon} ${escapeHtml(savedName)}・${x.drawNo?x.drawNo+"回目・":""}<span class="rarityBadgeSmall ${String(x.rarity||"").toLowerCase()}">${escapeHtml(x.rarity)}</span>${x.paid===false?"（11回目）":""}<br>${escapeHtml(x.reward||"")}</span></div>`}).join("");detail(`<h3>📜 ガチャ・交換履歴</h3><div class="history">${h||'<div class="empty">まだ履歴はありません。</div>'}</div>`) };
+document.getElementById("rewardBoxBtn").onclick=()=>showRewardBox();
+function showRewardBox(){
+  const items=state.rewards.filter(x=>!x.used);
+  const materialGroups=new Map();
+  const normalItems=[];
+  for(const x of items){
+    const isMaterial=Boolean(x.materialId&&Number(x.materialQty)>0);
+    if(isMaterial){
+      const key=String(x.materialId);
+      if(!materialGroups.has(key))materialGroups.set(key,{materialId:key,total:0});
+      materialGroups.get(key).total+=Math.max(0,Number(x.materialQty)||0);
+    }else if(["SR","SSR","UR"].includes(String(x.rarity||""))){
+      normalItems.push(x);
+    }
+  }
+  const grouped=Array.from(materialGroups.values()).sort((a,b)=>materialName(a.materialId).localeCompare(materialName(b.materialId),"ja"));
+  const materialHtml=grouped.map(g=>{
+    const unit=state.materials.find(m=>m.id===g.materialId)?.unit||"";
+    const name=materialName(g.materialId);
+    return `<div class="rewardItem materialRewardItem materialGroup" data-material-id="${escapeHtml(g.materialId)}">
+      <div class="rewardBadge materialBadge">素材</div>
+      <div class="rewardBody"><b>${escapeHtml(name)}</b><div class="rewardMeta">現在：<strong>${g.total}${escapeHtml(unit)}</strong></div></div>
+      <div class="materialConvertControls"><button class="materialConvertOpen" data-material-id="${escapeHtml(g.materialId)}" data-total="${g.total}">変換</button></div>
+    </div>`;
+  }).join("");
+  const normalHtml=normalItems.slice().reverse().map(x=>{
+    const cls=(x.rarity||"").toLowerCase();
+    return `<div class="rewardItem ${cls}"><div class="rewardBadge ${cls}">${escapeHtml(x.rarity)}</div><div class="rewardBody"><b>${escapeHtml(x.reward)}</b><div class="rewardMeta">${escapeHtml(sourceLabel(x))} ・ ${escapeHtml(x.time)}</div></div><button class="useReward" data-id="${escapeHtml(x.id)}">使う</button></div>`;
+  }).join("");
+  detail(`<h3>🎁 ごほうびBOX</h3><p class="boxIntro">SR以上のごほうびと、素材として入手したごほうびを保管します。素材は同じものをまとめて表示します。</p><div>${materialHtml}${normalHtml}${!materialHtml&&!normalHtml?'<div class="empty">まだ保管されているごほうびはありません。</div>':""}</div>`);
+  document.querySelectorAll(".useReward").forEach(btn=>btn.onclick=async()=>{
+    const id=btn.dataset.id;
+    const item=state.rewards.find(x=>x.id===id&&!x.used);
+    if(!item)return;
+    if(!confirm(`「${item.reward}」を使用しますか？`))return;
+    try{await updateCloud(s=>{const r=s.rewards.find(x=>x.id===id&&!x.used);if(!r)throw new Error("REWARD_NOT_FOUND");r.used=true;return s});showRewardBox()}
+    catch(e){console.error(e);openModal(`<h2>使用できませんでした</h2><p>ごほうびの状態を確認してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`)}
+  });
+  document.querySelectorAll(".materialConvertOpen").forEach(btn=>btn.onclick=()=>openMaterialConvertModal(btn.dataset.materialId,Number(btn.dataset.total)||0));
+}
+function openMaterialConvertModal(materialId,total){
+  const material=state.materials.find(m=>m.id===materialId);
+  const unit=material?.unit||"";
+  const name=materialName(materialId);
+  if(total<=0)return;
+  const currentBalance=Math.max(0,Number(material?.balance)||0);
+  openModal(`<div class="materialConvertModal"><div class="materialModalBadge">素材</div><div class="materialModalName">${escapeHtml(name)}</div><div class="materialModalInfo">ごほうびBOXに <b>${total}${escapeHtml(unit)}</b> 保管されています。<br>現在の素材残高：<b>${currentBalance}${escapeHtml(unit)}</b></div><div class="materialQtyDisplay" id="materialQtyDisplay">1</div><div class="materialQtyUnit">${escapeHtml(unit)}を変換</div><input id="materialQtyRange" class="materialQtyRange" type="range" min="1" max="${total}" value="1"><div class="materialQtyBtns"><button type="button" id="materialMinus10">−10</button><button type="button" id="materialMinus1">−1</button><button type="button" id="materialPlus1">＋1</button></div><button type="button" class="materialAllBtn" id="materialAll">すべて（${total}${escapeHtml(unit)}）</button><div class="modalBtns"><button class="cancel" id="materialCancel">閉じる</button><button class="ok" id="materialConfirm">1だけ変換</button></div></div>`);
+  const range=document.getElementById("materialQtyRange"),display=document.getElementById("materialQtyDisplay"),confirmBtn=document.getElementById("materialConfirm");
+  let qty=1;
+  const setQty=(v)=>{qty=Math.max(1,Math.min(total,Math.floor(Number(v)||1)));range.value=qty;display.textContent=qty;confirmBtn.textContent=`${qty}${unit}を変換`};
+  range.oninput=()=>setQty(range.value);
+  document.getElementById("materialMinus10").onclick=()=>setQty(qty-10);
+  document.getElementById("materialMinus1").onclick=()=>setQty(qty-1);
+  document.getElementById("materialPlus1").onclick=()=>setQty(qty+1);
+  document.getElementById("materialAll").onclick=()=>setQty(total);
+  document.getElementById("materialCancel").onclick=closeModal;
+  document.getElementById("materialConfirm").onclick=async()=>{
+    const btn=document.getElementById("materialConfirm");btn.disabled=true;
+    try{
+      await updateCloud(s=>{
+        const m=s.materials.find(m=>m.id===materialId);
+        if(!m)throw new Error("MATERIAL_NOT_FOUND");
+        let remain=qty;
+        const targets=s.rewards.filter(r=>!r.used&&r.materialId===materialId&&Number(r.materialQty)>0);
+        for(const r of targets){
+          if(remain<=0)break;
+          const have=Math.max(0,Number(r.materialQty)||0);
+          const take=Math.min(have,remain);
+          r.materialQty=have-take;
+          remain-=take;
+          if(r.materialQty<=0)r.used=true;
+        }
+        if(remain>0)throw new Error("MATERIAL_REWARD_NOT_ENOUGH");
+        m.balance=Math.max(0,Number(m.balance)||0)+qty;
+        return s;
+      });
+      closeModal();showRewardBox();
+    }catch(e){console.error(e);btn.disabled=false;openModal(`<h2>素材に変換できませんでした</h2><p>${e.message==="MATERIAL_NOT_FOUND"?"素材設定が見つかりません。":"保管中の素材が不足しています。BOXを更新してからもう一度お試しください。"}</p><button class="singleBtn" id="modalCloseBtn">OK</button>`)}
+  };
+}
+function showMaterials(){const mats=state.materials;const rows=mats.map(m=>`<div class="materialCard"><div><b>${escapeHtml(m.name)}</b><div class="materialBalance">${m.balance} ${escapeHtml(m.unit)}</div></div></div>`).join("");const shop=state.exchangeShop||{};const recipes=(shop.recipes||[]).filter(r=>r.name||r.outputs?.length).map(r=>`<div class="exchangeCard"><div class="exchangeTitle">${escapeHtml(r.name||"交換")}</div><div class="exchangeNeed">${r.requirements.filter(q=>q.materialId&&q.qty>0).map(q=>`${escapeHtml(materialName(q.materialId))} ×${q.qty}`).join(" ＋ ")||"交換条件未設定"}</div><div class="exchangeArrow">↓</div><div class="exchangeGet">${r.outputs.filter(o=>o.reward).map(o=>`<span class="rarityBadgeSmall ${o.rarity.toLowerCase()}">${escapeHtml(o.rarity)}</span> ${escapeHtml(o.reward)}${o.qty>1?` ×${o.qty}`:""}`).join("<br>")||"交換ごほうび未設定"}</div><button class="exchangeBtn" data-id="${escapeHtml(r.id)}">交換する</button></div>`).join("");detail(`<h3>🧩 素材・交換所</h3>${shop.rules?`<div class="gachaRules materialRules">${escapeHtml(shop.rules)}</div>`:""}<div class="sectionTitle">💰 素材残高</div><div>${rows||'<div class="empty">素材はまだ設定されていません。</div>'}</div><div class="sectionTitle">🔄 交換所</div><div>${recipes||'<div class="empty">交換できるごほうびはまだ設定されていません。</div>'}</div>`);document.querySelectorAll(".exchangeBtn").forEach(btn=>btn.onclick=()=>doExchange(btn.dataset.id))}
+async function doExchange(recipeId){const recipe=state.exchangeShop.recipes.find(r=>r.id===recipeId);if(!recipe)return;const validReq=recipe.requirements.filter(q=>q.materialId&&q.qty>0);const validOut=recipe.outputs.filter(o=>o.reward);if(!validReq.length||!validOut.length)return;const need=validReq.map(q=>`${materialName(q.materialId)} ×${q.qty}`).join(" ＋ ");const get=validOut.map(o=>`${o.rarity} ${o.reward}${o.qty>1?` ×${o.qty}`:""}`).join("、");if(!confirm(`${need}\n\n↓ 交換\n\n${get}\n\n交換しますか？`))return;try{await updateCloud(s=>{for(const q of validReq){const m=s.materials.find(m=>m.id===q.materialId);if(!m||m.balance<q.qty)throw new Error("NOT_ENOUGH_MATERIAL")}for(const q of validReq)s.materials.find(m=>m.id===q.materialId).balance-=q.qty;const now=new Date().toLocaleString("ja-JP"),dateKey=jpDateKey(),sourceName="素材・交換所";for(const o of validOut){const reward=makeRewardFromExchange(o,sourceName,now,dateKey);if(isBoxReward(o.rarity,"",0))s.rewards.push(reward);s.history.push({time:now,dateKey,type:"exchange",sourceType:"exchange",sourceName,gachaName:"",drawNo:0,rarity:o.rarity,reward:reward.reward,paid:true});}return s});showMaterials()}catch(e){console.error(e);openModal(`<h2>交換できませんでした</h2><p>${e.message==="NOT_ENOUGH_MATERIAL"?"素材が足りません。":"交換設定を確認してください。"}</p><button class="singleBtn" id="modalCloseBtn">OK</button>`)}}
+document.getElementById("materialBtn").onclick=showMaterials;
+
+document.getElementById("adminBtn").onclick=()=>{
+  if(DEBUG_MODE){showAdmin();return;}
+  openModal(`<h2>🔐 管理</h2><p>管理パスワードを入力してください。</p><input id="pw" name="admin-password" type="password" autocomplete="off"><div class="modalBtns"><button class="cancel" id="adminCancel">キャンセル</button><button class="ok" id="login">入室</button></div>`);
+  document.getElementById("adminCancel").onclick=closeModal;
+  document.getElementById("login").onclick=()=>{
+    const pw=document.getElementById("pw");
+    if(pw.value===ADMIN_PASSWORD){closeModal();showAdmin()}
+    else openModal(`<h2>パスワードが違います</h2><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+  };
+};
+function rarityOptions(selected){return ["N","R","SR","SSR","UR","なし"].map(r=>`<option value="${r}" ${r===selected?"selected":""}>${r}</option>`).join("")}
+function materialSelect(id,selected=""){return `<select id="${id}"><option value="">素材なし</option>${materialOptions(selected,false)}</select>`}
+function tableEditor(key,label,showReward=true){if(!showReward){const base=key.replace("Bonus","");return `<div class="sectionTitle">${label}</div><div class="probedit bonusHead" style="font-size:11px;color:#737982"><span>レア</span><span>ごほうび・素材</span><span>確率(%)</span></div>${state.tables[key].map((x,i)=>`<div class="probedit bonusRow"><span class="rarityBadgeSmall ${String(state.tables[base][i][0]||"").toLowerCase()}">${escapeHtml(state.tables[base][i][0])}</span><span class="bonusLinked">通常設定と連動</span><input type="number" min="0" max="100" step="0.1" id="${key}_p_${i}" value="${x[2]}"></div>`).join("")}<div class="note">11回目は通常設定の同じ枠（スロット）にあるレアリティ・ごほうび・素材設定を使用し、ここでは確率だけを変更します。確率合計は100%にしてください。</div>`}return `<div class="sectionTitle">${label}</div><div class="probedit tableHead" style="font-size:11px;color:#737982"><span>レア</span><span>ごほうび</span><span>素材</span><span>量</span><span>確率(%)</span></div>${state.tables[key].map((x,i)=>`<div class="probedit withMaterial"><select id="${key}_rar_${i}">${rarityOptions(x[0])}</select><input maxlength="20" id="${key}_r_${i}" value="${escapeHtml(x[1])}" placeholder="ごほうび"><select id="${key}_m_${i}"><option value="">素材なし</option>${materialOptions(x[3],false)}</select><input type="number" min="0" step="1" id="${key}_q_${i}" value="${x[4]||0}" placeholder="量"><input type="number" min="0" max="100" step="0.1" id="${key}_p_${i}" value="${x[2]}"></div>`).join("")}<div class="note">素材を設定したごほうびは、BOXで「素材に変換」とすると累積素材へ加算されます。素材なしでも通常のごほうびとして利用できます。確率合計は100%にしてください。</div>`}
+function resetGacha(type){const label=type==="red"?"赤がちゃ":"青がちゃ";if(!confirm(`${label}の排出設定・天井設定をごほうび・レアリティ・確率を含めて初期化しますか？`))return;state.tables[type]=clone(DEFAULT_TABLES[type]);state.tables[type+"Bonus"]=clone(DEFAULT_TABLES[type+"Bonus"]);state.gachas[type].ceiling=clone(DEFAULT_GACHAS[type].ceiling);showAdmin()}
+function ceilingEditor(type){const c=normalizeCeiling(state.gachas[type]?.ceiling);const item=i=>c.items[i]||{draws:i===0?40:80,rarity:i===0?"SSR":"UR",reward:""};const ro=(selected)=>["N","R","SR","SSR","UR"].map(r=>`<option value="${r}" ${selected===r?"selected":""}>${r}</option>`).join("");return `<div class="sectionTitle">🎯 ${type==="red"?"赤":"青"}がちゃ 天井システム</div><label>天井システム</label><select id="${type}CeilingEnabled"><option value="off" ${!c.enabled?"selected":""}>なし</option><option value="on" ${c.enabled?"selected":""}>あり</option></select><label>天井の回数</label><select id="${type}CeilingSlots"><option value="1" ${c.slotCount===1?"selected":""}>1回</option><option value="2" ${c.slotCount===2?"selected":""}>2回</option></select><div class="adminGrid"><div><label>天井① 到達回数</label><input id="${type}CeilingCount1" type="number" min="1" step="1" value="${item(0).draws}"></div><div><label>天井① レアリティ</label><select id="${type}CeilingRarity1">${ro(item(0).rarity)}</select></div><div><label>天井① ごほうび</label><input id="${type}CeilingReward1" maxlength="20" value="${escapeHtml(item(0).reward)}" placeholder="最大20文字"></div><div><label>天井① 素材</label><select id="${type}CeilingMaterial1">${materialOptions(item(0).materialId,true)}</select><input id="${type}CeilingMaterialQty1" type="number" min="0" step="1" value="${item(0).materialQty||0}" placeholder="素材数量"></div></div><div class="adminGrid" id="${type}CeilingSecond"><div><label>天井② 到達回数</label><input id="${type}CeilingCount2" type="number" min="1" step="1" value="${item(1).draws}"></div><div><label>天井② レアリティ</label><select id="${type}CeilingRarity2">${ro(item(1).rarity)}</select></div><div><label>天井② ごほうび</label><input id="${type}CeilingReward2" maxlength="20" value="${escapeHtml(item(1).reward)}" placeholder="最大20文字"></div><div><label>天井② 素材</label><select id="${type}CeilingMaterial2">${materialOptions(item(1).materialId,true)}</select><input id="${type}CeilingMaterialQty2" type="number" min="0" step="1" value="${item(1).materialQty||0}" placeholder="素材数量"></div></div><label>現在のがちゃ回数</label><input id="${type}CeilingProgress" type="number" min="0" step="1" value="${c.progress}"><div class="note">※天井ごほうびにも素材を設定できます。素材を設定した天井ごほうびは、通常の素材ごほうびと同じようにBOXから素材へ変換できます。現在のがちゃ回数は管理画面から自由に変更できます。</div>`}
+function materialAdminHtml(){const rows=state.materials.map((m,i)=>`<div class="adminMaterial" data-index="${i}"><input type="hidden" id="matId_${i}" value="${escapeHtml(m.id)}"><div><label>素材名</label><input id="matName_${i}" maxlength="40" value="${escapeHtml(m.name)}" placeholder="例：モバレポイント"><label>単位</label><input id="matUnit_${i}" maxlength="20" value="${escapeHtml(m.unit)}" placeholder="例：pt"><label>現在の残高</label><input id="matBal_${i}" type="number" min="0" step="1" value="${m.balance}"></div><button type="button" class="smallbtn danger removeMaterial" data-index="${i}">削除</button></div>`).join("");return `<div class="sectionTitle">🧩 素材管理</div><p class="note">素材IDはシステムが自動生成します。ここで設定した素材を、ガチャごほうびの素材欄から選択できます。</p><div id="materialAdminList">${rows||'<div class="empty">素材はまだありません。</div>'}</div><button type="button" class="smallbtn" id="addMaterial">＋ 素材を追加</button>`}
+function exchangeAdminHtml(){const shop=state.exchangeShop||{name:"",rules:"",recipes:[]};const recipeRows=(shop.recipes||[]).map((r,i)=>recipeAdminRow(r,i)).join("");return `<div class="sectionTitle">🔄 素材・交換所 管理</div><div class="note">交換所の名称は「素材・交換所」で固定しています。個別の交換内容は「交換名」で設定できます。</div><label>交換所ルール・説明</label><textarea class="adminTextarea" id="exchangeRules" placeholder="交換条件やイベント説明など">${escapeHtml(shop.rules||"")}</textarea><div id="recipeAdminList">${recipeRows||'<div class="empty">交換レシピはまだありません。</div>'}</div><button type="button" class="smallbtn adminRecipeAdd" id="addRecipe">＋ 交換レシピを追加</button>`}
+function recipeAdminRow(r,i){const reqs=[0,1,2].map(j=>{const q=r.requirements?.[j]||{materialId:"",qty:0};return `<div class="adminMini"><select id="recipe_${i}_reqM_${j}"><option value="">素材を選択</option>${materialOptions(q.materialId,false)}</select><input id="recipe_${i}_reqQ_${j}" type="number" min="0" step="1" value="${q.qty||0}" placeholder="必要量"></div>`}).join("");const outs=[0,1,2].map(j=>{const o=r.outputs?.[j]||{reward:"",rarity:"SR",qty:1};return `<div class="adminMini output"><select id="recipe_${i}_outR_${j}">${["N","R","SR","SSR","UR"].map(v=>`<option value="${v}" ${o.rarity===v?"selected":""}>${v}</option>`).join("")}</select><input id="recipe_${i}_outT_${j}" maxlength="20" value="${escapeHtml(o.reward||"")}" placeholder="ごほうび名"><input id="recipe_${i}_outQ_${j}" type="number" min="1" step="1" value="${o.qty||1}" placeholder="数量"></div>`}).join("");return `<div class="recipeAdmin" data-index="${i}"><input type="hidden" id="recipe_${i}_id" value="${escapeHtml(r.id)}"><label>交換名</label><input id="recipe_${i}_name" maxlength="40" value="${escapeHtml(r.name||"")}" placeholder="例：モバレ1回券と交換"><div class="miniTitle">必要な素材（最大3種類）</div>${reqs}<div class="miniTitle">交換でもらうごほうび（最大3個）</div>${outs}<button type="button" class="smallbtn danger removeRecipe" data-index="${i}">この交換レシピを削除</button></div>`}
+function showAdmin(){const a=document.getElementById("admin");a.classList.add("open");document.getElementById("detail").classList.remove("open");a.innerHTML=`<h3>⚙ 管理画面</h3><label>ガチャ可能回数</label><input id="aTickets" type="number" min="0" value="${state.tickets}"><label>今日の勉強時間（分）</label><input id="aToday" type="number" min="0" value="${state.todayStudy}"><label>累計勉強時間（分）</label><input id="aTotal" type="number" min="0" value="${state.totalStudy}"><label>試験日</label><input id="aExam" type="date" value="${state.examDate}"><label>「今日の勉強時間」のリセット時刻</label><input id="aResetTime" type="time" value="${state.resetTime||DEFAULT_RESET_TIME}"><div class="note">※指定時刻になると「今日の勉強時間」が0分に切り替わります。初期値は6:00です。</div>${gachaAdminBlock("red","🔴 赤がちゃ")}${gachaAdminBlock("blue","🔵 青がちゃ")}${tableEditor("redBonus","🔴 赤がちゃ 11回目の確率",false)}${tableEditor("blueBonus","🔵 青がちゃ 11回目の確率",false)}${materialAdminHtml()}${exchangeAdminHtml()}<div class="adminMainActions"><button class="smallbtn adminSaveBtn" id="adminSave">✓ 修正を保存</button><button class="smallbtn adminCloseBtn" id="adminClose">閉じる</button></div><hr><p class="note">※ガチャでSR以上のごほうびはBOXに保管されます。素材を設定したごほうびは、レアリティに関係なく素材としてBOXにまとめて保管されます。交換所からのごほうびも同じBOXに入り、履歴には交換所からの入手として記録されます。</p><div class="sectionTitle">🧹 データ整理</div><div class="adminGrid"><button class="smallbtn danger" id="clearRewards">🎁 ごほうびBOXを一括削除</button><button class="smallbtn danger" id="clearHistory">📜 ガチャ・交換履歴を一括削除</button></div><button class="smallbtn danger" id="reset">全データ初期化</button>`;
+  document.getElementById("redReset").onclick=()=>resetGacha("red");document.getElementById("blueReset").onclick=()=>resetGacha("blue");
+  for(const type of ["red","blue"]){const mode=document.getElementById(`${type}OpenMode`),start=document.getElementById(`${type}StartAt`),end=document.getElementById(`${type}EndAt`);const syncPeriod=()=>{const on=mode.value==="period";start.disabled=!on;end.disabled=!on;start.closest("label").style.opacity=on?"1":".5";end.closest("label").style.opacity=on?"1":".5"};mode.onchange=syncPeriod;syncPeriod()}
+  for(const type of ["red","blue"]){const toggle=()=>{const on=document.getElementById(`${type}CeilingEnabled`).value==="on";const two=document.getElementById(`${type}CeilingSlots`).value==="2";const box=document.getElementById(`${type}CeilingSecond`);if(box)box.style.display=two?"grid":"none";for(const id of [`${type}CeilingCount1`,`${type}CeilingRarity1`,`${type}CeilingReward1`])document.getElementById(id).disabled=!on;for(const id of [`${type}CeilingCount2`,`${type}CeilingRarity2`,`${type}CeilingReward2`])document.getElementById(id).disabled=!on||!two;};document.getElementById(`${type}CeilingEnabled`).onchange=toggle;document.getElementById(`${type}CeilingSlots`).onchange=toggle;toggle()}
+  document.getElementById("addMaterial").onclick=()=>{const list=document.getElementById("materialAdminList");const i="m"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);list.insertAdjacentHTML("beforeend",`<div class="adminMaterial" data-index="${i}"><input type="hidden" id="matId_${i}" value="${makeId("mat")}"><div><label>素材名</label><input id="matName_${i}" maxlength="40" placeholder="素材名"><label>単位</label><input id="matUnit_${i}" maxlength="20" placeholder="例：pt"><label>現在の残高</label><input id="matBal_${i}" type="number" min="0" step="1" value="0"></div><button type="button" class="smallbtn danger removeMaterial">削除</button></div>`);refreshMaterialSelectOptions();bindDynamicAdmin()};
+  document.getElementById("addRecipe").onclick=()=>{const list=document.getElementById("recipeAdminList");const i="r"+Date.now().toString(36)+Math.random().toString(36).slice(2,5);list.insertAdjacentHTML("beforeend",recipeAdminRow({id:makeId("ex"),name:"",requirements:[],outputs:[]},i));refreshMaterialSelectOptions();bindDynamicAdmin()};bindDynamicAdmin();
+  document.getElementById("adminSave").onclick=saveAdmin;
+  document.getElementById("adminClose").onclick=()=>a.classList.remove("open");
+  document.getElementById("clearRewards").onclick=async()=>{if(!confirm(`ごほうびBOXに保管されているごほうびをすべて削除します。\n\nこの操作は取り消せません。よろしいですか？`))return;try{await updateCloud(s=>{s.rewards=[];return s});showAdmin()}catch(err){openModal(`<h2>削除できませんでした</h2><button class="singleBtn" id="modalCloseBtn">OK</button>`)}};
+  document.getElementById("clearHistory").onclick=async()=>{if(!confirm(`ガチャ・交換履歴をすべて削除します。\n\nこの操作は取り消せません。よろしいですか？`))return;try{await updateCloud(s=>{s.history=[];return s});showAdmin()}catch(err){openModal(`<h2>削除できませんでした</h2><button class="singleBtn" id="modalCloseBtn">OK</button>`)}};
+  document.getElementById("reset").onclick=async()=>{if(confirm("全データを初期化します。よろしいですか？")&&confirm("本当に削除しますか？")){try{await deleteMine();localStorage.removeItem(KEY);localStorage.removeItem(OLD_KEY);state=clone(defaults);cloudReady=false;await ensureCloudState();render();showAdmin()}catch(err){openModal(`<h2>初期化できませんでした</h2><button class="singleBtn" id="modalCloseBtn">OK</button>`)}}};
+}
+function gachaAdminBlock(type,label){const g=state.gachas[type];return `<div class="sectionTitle">${label} 表示・公開設定</div><label>ガチャ名（最大30文字）</label><input id="${type}NameEdit" maxlength="30" value="${escapeHtml(g.name)}"><label>コメント</label><textarea class="adminTextarea" id="${type}CommentEdit" placeholder="ガチャ一覧に表示するコメント">${escapeHtml(g.comment)}</textarea><label>ガチャルール・説明</label><textarea class="adminTextarea" id="${type}RulesEdit" placeholder="ガチャ詳細で表示するルールや注意事項など">${escapeHtml(g.rules||"")}</textarea><label>ガチャ公開状態</label><select id="${type}OpenMode"><option value="open" ${g.openMode==="open"?"selected":""}>常時開放（いつでも引ける）</option><option value="closed" ${g.openMode==="closed"?"selected":""}>非公開（引けない）</option><option value="period" ${(g.openMode==="period"||g.openMode==="auto")?"selected":""}>期間限定（開催期間を指定）</option></select><div class="adminGrid periodFields"><label>開催開始日時<input id="${type}StartAt" type="datetime-local" value="${escapeHtml(g.startAt||"")}"></label><label>開催終了日時<input id="${type}EndAt" type="datetime-local" value="${escapeHtml(g.endAt||"")}"></label></div><div class="note">「期間限定」を選ぶと、指定した開始日時〜終了日時の間だけ自動で開放されます。</div>${ceilingEditor(type)}${tableEditor(type,`${label} 排出設定`,true)}<button class="smallbtn" id="${type}Reset">🔄 ${label}設定を初期化</button>`}
+function refreshMaterialSelectOptions(){document.querySelectorAll('select[id*="_m_"]').forEach(sel=>{const selected=sel.value;const isBlank=sel.id.includes("reqM_");sel.innerHTML=(isBlank?'<option value="">素材を選択</option>':'<option value="">素材なし</option>')+Array.from(document.querySelectorAll('.adminMaterial')).map(row=>{const idx=row.dataset.index;const name=document.getElementById(`matName_${idx}`)?.value.trim();const id=document.getElementById(`matId_${idx}`)?.value;if(!id||!name)return '';return `<option value="${escapeHtml(id)}">${escapeHtml(name)}</option>`}).join('');sel.value=selected})}
+function bindDynamicAdmin(){document.querySelectorAll(".removeMaterial").forEach(btn=>btn.onclick=()=>{const row=btn.closest(".adminMaterial");row?.remove()});document.querySelectorAll(".removeRecipe").forEach(btn=>btn.onclick=()=>{const row=btn.closest(".recipeAdmin");row?.remove()})}
+function collectMaterials(){return Array.from(document.querySelectorAll(".adminMaterial")).map((row,i)=>({id:document.getElementById(`matId_${row.dataset.index||i}`)?.value||makeId("mat"),name:document.getElementById(`matName_${row.dataset.index||i}`)?.value.trim()||"",unit:document.getElementById(`matUnit_${row.dataset.index||i}`)?.value.trim()||"",balance:Math.max(0,Math.floor(+document.getElementById(`matBal_${row.dataset.index||i}`)?.value||0))})).filter(m=>m.name)}
+function collectRecipes(){return Array.from(document.querySelectorAll(".recipeAdmin")).map((row,i)=>{const idx=row.dataset.index||i;const req=[0,1,2].map(j=>({materialId:document.getElementById(`recipe_${idx}_reqM_${j}`)?.value||"",qty:Math.max(0,Math.floor(+document.getElementById(`recipe_${idx}_reqQ_${j}`)?.value||0))})).filter(q=>q.materialId&&q.qty>0);const outputs=[0,1,2].map(j=>({rarity:document.getElementById(`recipe_${idx}_outR_${j}`)?.value||"SR",reward:document.getElementById(`recipe_${idx}_outT_${j}`)?.value.trim()||"",qty:Math.max(1,Math.floor(+document.getElementById(`recipe_${idx}_outQ_${j}`)?.value||1))})).filter(o=>o.reward);return {id:document.getElementById(`recipe_${idx}_id`)?.value||makeId("ex"),name:document.getElementById(`recipe_${idx}_name`)?.value.trim()||"",requirements:req,outputs}}).filter(r=>r.name||r.requirements.length||r.outputs.length)}
+async function saveAdmin(){const next=clone(state);next.tickets=Math.max(0,+document.getElementById("aTickets").value||0);next.todayStudy=Math.max(0,+document.getElementById("aToday").value||0);next.totalStudy=Math.max(0,+document.getElementById("aTotal").value||0);next.examDate=document.getElementById("aExam").value||"2026-10-18";next.resetTime=document.getElementById("aResetTime").value||DEFAULT_RESET_TIME;next.gachaPassword="";for(const type of ["red","blue"]){const oldG=state.gachas[type]||{};const mode=document.getElementById(`${type}OpenMode`).value;const startAt=document.getElementById(`${type}StartAt`)?.value||"";const endAt=document.getElementById(`${type}EndAt`)?.value||"";if(mode==="period"&&(!startAt||!endAt||Date.parse(startAt)>=Date.parse(endAt))){openModal(`<h2>開催期間を確認してください</h2><p>開始日時と終了日時を入力し、開始が終了より前になるようにしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return;}const enabled=document.getElementById(`${type}CeilingEnabled`).value==="on";const slots=Number(document.getElementById(`${type}CeilingSlots`).value)===2?2:1;const c1=Math.max(1,Math.floor(+document.getElementById(`${type}CeilingCount1`).value||40)),c2=Math.max(1,Math.floor(+document.getElementById(`${type}CeilingCount2`).value||80));const cr1=document.getElementById(`${type}CeilingRarity1`).value,cr2=document.getElementById(`${type}CeilingRarity2`).value,r1=document.getElementById(`${type}CeilingReward1`).value.trim(),r2=document.getElementById(`${type}CeilingReward2`).value.trim(),cm1=document.getElementById(`${type}CeilingMaterial1`)?.value||"",cm2=document.getElementById(`${type}CeilingMaterial2`)?.value||"",cq1=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingMaterialQty1`)?.value||0)),cq2=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingMaterialQty2`)?.value||0)),cp=Math.max(0,Math.floor(+document.getElementById(`${type}CeilingProgress`).value||0));if(enabled&&(!r1||(slots===2&&(!r2||c2<=c1)))){openModal(`<h2>天井設定を確認してください</h2><p>天井のごほうびと到達回数を確認してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if((cm1&&cq1<=0)||(cm2&&cq2<=0)){openModal(`<h2>天井の素材設定を確認してください</h2><p>素材を選んだ場合は、素材数量を1以上にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if((cm1&&!next.materials.some(m=>m.id===cm1))||(cm2&&!next.materials.some(m=>m.id===cm2))){openModal(`<h2>天井の素材設定を確認してください</h2><p>選択された素材が見つかりません。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}next.gachas[type]={name:document.getElementById(`${type}NameEdit`).value.slice(0,30),comment:document.getElementById(`${type}CommentEdit`).value,rules:document.getElementById(`${type}RulesEdit`).value,openMode:mode,startAt,endAt,autoWeekday:Number(oldG.autoWeekday)||1,autoTime:String(oldG.autoTime||"18:00"),autoReleaseAt:"",ceiling:{enabled,slotCount:slots,items:[{draws:c1,rarity:cr1,reward:r1,materialId:cm1,materialQty:cq1},{draws:c2,rarity:cr2,reward:r2,materialId:cm2,materialQty:cq2}],progress:cp}};for(let i=0;i<5;i++){const rar=document.getElementById(`${type}_rar_${i}`).value,reward=document.getElementById(`${type}_r_${i}`).value.trim(),p=Math.max(0,+document.getElementById(`${type}_p_${i}`).value||0),mid=document.getElementById(`${type}_m_${i}`).value||"",qty=Math.max(0,Math.floor(+document.getElementById(`${type}_q_${i}`).value||0));if(rar==="なし"&&p>0){openModal(`<h2>確率を確認してください</h2><p>「なし」の枠は確率0%にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(mid&&!state.materials.some(m=>m.id===mid)&&!document.getElementById("matName_0")){openModal(`<h2>素材設定を確認してください</h2><p>選択された素材が見つかりません。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(mid&&qty<=0){openModal(`<h2>素材量を確認してください</h2><p>素材を選んだ場合は、素材量を1以上にしてください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(reward.length>20){openModal(`<h2>文字数を確認してください</h2><p>ごほうびは最大20文字です。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}next.tables[type][i]=[rar,reward,p,mid,qty]}const sum=next.tables[type].reduce((a,r)=>a+Number(r[2]),0);if(Math.abs(sum-100)>.001){openModal(`<h2>確率を確認してください</h2><p>${type}の確率合計が <b>${sum}%</b> です。100%になるよう修正してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}}
+  for(const key of ["redBonus","blueBonus"]){let sum=0,base=key.replace("Bonus","");for(let i=0;i<5;i++){const p=Math.max(0,+document.getElementById(`${key}_p_${i}`).value||0);next.tables[key][i]=[next.tables[base][i][0],next.tables[base][i][1],p,next.tables[base][i][3],next.tables[base][i][4]];sum+=p}if(Math.abs(sum-100)>.001){openModal(`<h2>11回目の確率を確認してください</h2><p>${key}の確率合計が <b>${sum}%</b> です。100%になるよう修正してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}}
+  next.materials=collectMaterials();const validMaterialIds=new Set(next.materials.map(m=>m.id));const referencedMaterialIds=[...Object.keys(DEFAULT_TABLES)].flatMap(key=>(next.tables[key]||[]).map(r=>String(r[3]||"")).filter(Boolean));const missingReferenced=[...new Set(referencedMaterialIds.filter(id=>!validMaterialIds.has(id)))];if(missingReferenced.length){openModal(`<h2>素材設定を確認してください</h2><p>ガチャのごほうびに使用中の素材を削除しようとしています。<br>先にガチャ排出設定の素材欄を「素材なし」に変更してから削除してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}for(const key of Object.keys(DEFAULT_TABLES))next.tables[key]=next.tables[key].map(r=>[r[0],r[1],r[2],String(r[3]||""),Math.max(0,Number(r[4])||0)]);next.exchangeShop={name:"素材・交換所",rules:document.getElementById("exchangeRules").value,recipes:collectRecipes()};for(const r of next.exchangeShop.recipes){if(!r.name||!r.requirements.length||!r.outputs.length){openModal(`<h2>交換レシピを確認してください</h2><p>交換名・必要素材・交換ごほうびを設定してください。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}if(r.outputs.some(o=>o.reward.length>20)){openModal(`<h2>交換ごほうびを確認してください</h2><p>ごほうび名は最大20文字です。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);return}}
+  try{await updateCloud(()=>next);showAdmin()}catch(err){console.error(err);openModal(`<h2>保存できませんでした</h2><p>Firebaseへの接続でエラーが発生しました。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`)} }
+
+/* ===== v41 main: ホーム表示 / ミッション / 勉強記録 / プリセット ===== */
+const fmtM=m=>m>=60?`${Math.floor(m/60)}時間${m%60?m%60+"分":""}`:`${m}分`;
+const dayCats=k=>state.studyDays[k]||{};
+const dayTotal=k=>Object.values(dayCats(k)).reduce((a,b)=>a+b,0);
+const catOf=id=>state.categories.find(c=>c.id===id)||{id,name:"その他",color:"#8b9198"};
+const todayKey=()=>studyDateKey(new Date(),state.resetTime);
+const md=k=>`${+k.slice(5,7)}/${+k.slice(8)}`;
+const wd=k=>"日月火水木金土"[new Date(k+"T00:00:00Z").getUTCDay()];
+function rangeDays(n){const b=new Date(todayKey()+"T00:00:00Z");return Array.from({length:n},(_,i)=>{const d=new Date(b);d.setUTCDate(d.getUTCDate()-(n-1-i));return d.toISOString().slice(0,10)})}
+function weekDays(){const d=new Date(todayKey()+"T00:00:00Z");return rangeDays((d.getUTCDay()+6)%7+1)}
+function errModal(t,p=""){openModal(`<h2>${t}</h2>${p?`<p>${p}</p>`:""}<button class="singleBtn" id="modalCloseBtn">OK</button>`)}
+
+/* --- デイリーミッション --- */
+function missionList(s,dk){
+  const cfg=s.missionCfg,cats=s.studyDays[dk]||{},tot=Object.values(cats).reduce((a,b)=>a+b,0),n=Object.keys(cats).length,cl=s.missionClaims[dk]||[],gd=s.goalDaily>0?s.goalDaily:60;
+  const base=[
+    {id:"m1",title:"30分以上勉強する",prog:Math.min(tot,30),goal:30,unit:"分",tickets:cfg.t1},
+    {id:"m2",title:"2つ以上の分野を勉強する",prog:Math.min(n,2),goal:2,unit:"分野",tickets:cfg.t2},
+    {id:"m3",title:`今日の目標（${gd}分）を達成する`,prog:Math.min(tot,gd),goal:gd,unit:"分",tickets:cfg.t3}
+  ];
+  base.forEach(m=>{m.done=m.prog>=m.goal;m.claimed=cl.includes(m.id)});
+  base.push({id:"bonus",title:"全ミッション達成ボーナス",prog:base.filter(m=>m.claimed).length,goal:3,unit:"個",tickets:cfg.tb,reward:cfg.bonusReward,rarity:cfg.bonusRarity,done:base.every(m=>m.claimed),claimed:cl.includes("bonus")});
+  return base;
+}
+function renderHome(){
+  const gb=document.getElementById("goalBox"),mc=document.getElementById("missionCard");
+  if(!gb||!mc||!state.categories)return;
+  const t=state.todayStudy,gd=state.goalDaily,gw=state.goalWeekly,wk=weekDays().reduce((a,k)=>a+dayTotal(k),0);
+  let h="";
+  if(gd>0){const p=Math.min(100,Math.round(t/gd*100));h+=`<div class="goalRow"><span>🎯 今日の目標 ${t}/${gd}分</span><span>${t>=gd?"🎉 達成！":p+"%"}</span></div><div class="bar"><i style="width:${p}%"></i></div>`}
+  if(gw>0){const p=Math.min(100,Math.round(wk/gw*100));h+=`<div class="goalRow"><span>📅 今週の目標 ${fmtM(wk)}/${fmtM(gw)}</span><span>${wk>=gw?"🎉 達成！":p+"%"}</span></div><div class="bar"><i style="width:${p}%"></i></div>`}
+  gb.innerHTML=h;
+  mc.innerHTML=`<h3>🎯 デイリーミッション</h3>`+missionList(state,todayKey()).map(m=>{
+    const p=Math.round(m.prog/m.goal*100),rw=`🎫×${m.tickets}${m.reward?`＋🎁${escapeHtml(m.rarity)} ${escapeHtml(m.reward)}`:""}`;
+    const btn=m.claimed?'<button class="mBtn got" disabled>✓ 受取済</button>':`<button class="mBtn" data-m="${m.id}" ${m.done?"":"disabled"}>${m.done?"受け取る":"未達成"}</button>`;
+    return `<div class="mRow"><div><div class="mTitle">${escapeHtml(m.title)}</div><div class="mSub">${m.prog}/${m.goal}${m.unit} ・ ${rw}</div><div class="bar sm"><i style="width:${p}%"></i></div></div>${btn}</div>`;
+  }).join("")+`<div class="note">毎日${escapeHtml(state.resetTime)}に切り替わります。</div>`;
+}
+function render(){renderBase();renderHome()}
+document.getElementById("missionCard").onclick=e=>{const b=e.target.closest("[data-m]");if(b&&!b.disabled)claimMission(b.dataset.m)};
+async function claimMission(id){
+  let got=null;
+  try{
+    await updateCloud(s=>{
+      const dk=studyDateKey(new Date(),s.resetTime),cl=(s.missionClaims[dk]=s.missionClaims[dk]||[]),m=missionList(s,dk).find(x=>x.id===id);
+      if(!m||m.claimed||!m.done)throw new Error("MISSION_NA");
+      cl.push(id);s.tickets+=m.tickets;
+      if(id==="bonus"&&m.reward)s.rewards.push({id:makeId("rew"),time:new Date().toLocaleString("ja-JP"),dateKey:dk,type:"mission",sourceType:"mission",sourceName:"デイリーミッション",gachaName:"",rarity:m.rarity,reward:m.reward,materialId:"",materialQty:0,used:false});
+      Object.keys(s.missionClaims).sort().slice(0,-14).forEach(k=>delete s.missionClaims[k]);
+      got=m;return s;
+    });
+    openModal(`<div class="result"><div class="rarity">🎫</div><div class="reward">${got.tickets?`回数券${got.tickets}枚獲得！`:"達成！"}${got.id==="bonus"&&got.reward?`<br>🎁 ${escapeHtml(got.reward)} をBOXに追加`:""}</div></div><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+  }catch(e){console.error(e);errModal("受け取れませんでした","達成状況を確認してください。")}
+}
+
+/* --- グラフ（SVG） --- */
+function barSvg(days,goal){
+  const W=320,H=160,L=32,R=6,T=10,B=20,pw=W-L-R,ph=H-T-B,tot=days.map(dayTotal),max=Math.max(goal||0,...tot,60)*1.1,bw=pw/days.length,gap=Math.max(1,Math.min(5,bw*.2)),step=Math.ceil(days.length/7);
+  let g="";
+  for(let i=0;i<=2;i++){const y=T+ph-ph*i/2;g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#e8ebee"/><text x="${L-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#737982">${(max*i/2/60).toFixed(1)}h</text>`}
+  days.forEach((k,i)=>{
+    let y=T+ph;const x=L+i*bw+gap/2;
+    for(const[c,m]of Object.entries(dayCats(k))){const h=ph*m/max;y-=h;g+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${(bw-gap).toFixed(1)}" height="${h.toFixed(1)}" fill="${catOf(c).color}"/>`}
+    if(i%step===0)g+=`<text x="${(x+(bw-gap)/2).toFixed(1)}" y="${H-6}" text-anchor="middle" font-size="9" fill="#737982">${md(k)}</text>`;
+  });
+  if(goal>0){const y=T+ph-ph*goal/max;g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#c93434" stroke-dasharray="4 3"/><text x="${W-R}" y="${y-3}" text-anchor="end" font-size="9" fill="#c93434">目標</text>`}
+  return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
+}
+function donutSvg(cs,sum){
+  const r=40,C=2*Math.PI*r;let acc=0,seg="";
+  if(sum>0)Object.entries(cs).sort((a,b)=>b[1]-a[1]).forEach(([c,m])=>{const len=C*m/sum;seg+=`<circle cx="60" cy="60" r="${r}" fill="none" stroke="${catOf(c).color}" stroke-width="22" stroke-dasharray="${len.toFixed(2)} ${(C-len).toFixed(2)}" stroke-dashoffset="${(-acc).toFixed(2)}" transform="rotate(-90 60 60)"/>`;acc+=len});
+  return `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="${r}" fill="none" stroke="#eceff2" stroke-width="22"/>${seg}<text x="60" y="57" text-anchor="middle" font-size="9" fill="#737982">合計</text><text x="60" y="72" text-anchor="middle" font-size="12" font-weight="800" fill="#20242a">${fmtM(sum)}</text></svg>`;
+}
+function lineSvg(days){
+  const W=320,H=140,L=32,R=10,T=14,B=20,pw=W-L-R,ph=H-T-B;let c=0;
+  const cum=days.map(k=>c+=dayTotal(k)),max=Math.max(c,60)*1.1,P=cum.map((v,i)=>[L+pw*i/(days.length-1),T+ph-ph*v/max]),pts=P.map(p=>p[0].toFixed(1)+","+p[1].toFixed(1)).join(" "),e=P[P.length-1];
+  let g="";
+  for(let i=0;i<=2;i++){const y=T+ph-ph*i/2;g+=`<line x1="${L}" x2="${W-R}" y1="${y}" y2="${y}" stroke="#e8ebee"/><text x="${L-4}" y="${y+3}" text-anchor="end" font-size="9" fill="#737982">${(max*i/2/60).toFixed(1)}h</text>`}
+  g+=`<polygon points="${L},${T+ph} ${pts} ${L+pw},${T+ph}" fill="#3975c822"/><polyline points="${pts}" fill="none" stroke="#3975c8" stroke-width="2.5" stroke-linejoin="round"/><circle cx="${e[0].toFixed(1)}" cy="${e[1].toFixed(1)}" r="3.5" fill="#3975c8"/><text x="${e[0].toFixed(1)}" y="${Math.max(10,e[1]-8).toFixed(1)}" text-anchor="end" font-size="10" font-weight="800" fill="#3975c8">${fmtM(c)}</text><text x="${L}" y="${H-5}" font-size="9" fill="#737982">${md(days[0])}</text><text x="${W-R}" y="${H-5}" text-anchor="end" font-size="9" fill="#737982">${md(days[days.length-1])}</text>`;
+  return `<svg viewBox="0 0 ${W} ${H}">${g}</svg>`;
+}
+
+/* --- 勉強記録パネル --- */
+let statRange=7;
+function showStats(){
+  const days=rangeDays(statRange),tot=days.map(dayTotal),sum=tot.reduce((a,b)=>a+b,0),gd=state.goalDaily,gw=state.goalWeekly;
+  const cs={};days.forEach(k=>Object.entries(dayCats(k)).forEach(([c,m])=>cs[c]=(cs[c]||0)+m));
+  const all=rangeDays(400).reverse();let st=0,i=dayTotal(all[0])>0?0:1;while(i<all.length&&dayTotal(all[i])>0){st++;i++}
+  const hit=gd>0?tot.filter(v=>v>=gd).length:0,wk=weekDays().reduce((a,k)=>a+dayTotal(k),0),wp=gw>0?Math.min(100,Math.round(wk/gw*100)):0;
+  const leg=Object.entries(cs).sort((a,b)=>b[1]-a[1]).map(([c,m])=>`<div><i style="background:${catOf(c).color}"></i>${escapeHtml(catOf(c).name)} ${fmtM(m)}（${Math.round(m/sum*100)}%）</div>`).join("")||'<div class="empty">記録がありません</div>';
+  const rec=Object.keys(state.studyDays).sort().reverse().slice(0,14).map(k=>`<div class="dayRow"><b>${md(k)}（${wd(k)}）</b>　${fmtM(dayTotal(k))}<div class="chips2">${Object.entries(dayCats(k)).sort((a,b)=>b[1]-a[1]).map(([c,m])=>`<span><i style="color:${catOf(c).color}">■</i> ${escapeHtml(catOf(c).name)} ${fmtM(m)}</span>`).join("")}</div></div>`).join("")||'<div class="empty">まだ記録がありません。「勉強を記録する」から追加できます。</div>';
+  const logs=state.studyLog.slice(-10).reverse().map(l=>`<div class="logRow"><span>${l.dk?md(l.dk):""} ${escapeHtml(catOf(l.cat).name)} ${fmtM(l.min)}</span><button data-act="logDel" data-id="${escapeHtml(l.id)}">取消</button></div>`).join("");
+  const catRows=state.categories.map(c=>`<div class="logRow"><span><i style="color:${c.color}">■</i> ${escapeHtml(c.name)}</span><span><button data-act="catEdit" data-id="${escapeHtml(c.id)}">名前変更</button> <button data-act="catDel" data-id="${escapeHtml(c.id)}">削除</button></span></div>`).join("");
+  detail(`<h3>📊 勉強記録</h3>
+<div class="seg">${[7,30,90].map(n=>`<button data-act="range" data-v="${n}" class="${n===statRange?"on":""}">${n}日</button>`).join("")}</div>
+<div class="sumGrid"><div><b>${fmtM(sum)}</b><span>期間合計</span></div><div><b>${fmtM(Math.round(sum/days.length))}</b><span>1日平均</span></div><div><b>🔥 ${st}日</b><span>連続学習</span></div><div><b>${gd>0?`${hit}/${days.length}日`:"—"}</b><span>目標達成日</span></div></div>
+<div class="sectionTitle">📊 日別の勉強時間</div><div class="chartBox">${barSvg(days,gd)}</div>
+<div class="sectionTitle">🥧 分野別の割合</div><div class="chartBox donutWrap"><div>${donutSvg(cs,sum)}</div><div class="legend">${leg}</div></div>
+<div class="sectionTitle">📈 累計の推移</div><div class="chartBox">${lineSvg(days)}</div>
+<div class="sectionTitle">🎯 目標時間（0で目標なし）</div><div class="chartBox"><div class="inl"><label>1日（分）<input id="gDaily" type="number" min="0" max="1440" value="${gd}"></label><label>1週間（時間）<input id="gWeekly" type="number" min="0" max="168" step="0.5" value="${gw/60}"></label><button class="smallbtn" data-act="goalSave">保存</button></div>${gw>0?`<div class="goalRow" style="margin-top:12px"><span>今週 ${fmtM(wk)} / ${fmtM(gw)}</span><span>${wp}%</span></div><div class="bar"><i style="width:${wp}%"></i></div>`:""}</div>
+<div class="sectionTitle">🏷 分野の管理</div><div class="chartBox">${catRows}<div class="inl" style="grid-template-columns:1fr auto;margin-top:8px"><label>新しい分野<input id="newCat" maxlength="16" placeholder="例：民法の条文"></label><button class="smallbtn" data-act="catAdd">追加</button></div></div>
+<div class="sectionTitle">📅 日別の記録</div><div class="chartBox">${rec}</div>
+${logs?`<div class="sectionTitle">🕘 最近の記録</div><div class="chartBox">${logs}<div class="note">取消しても、獲得済みの回数券は戻りません。</div></div>`:""}`);
+}
+document.getElementById("statsBtn").onclick=showStats;
+document.getElementById("detail").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;
+  const a=b.dataset.act,id=b.dataset.id;
+  try{
+    if(a==="range"){statRange=Number(b.dataset.v);showStats()}
+    else if(a==="goalSave"){
+      const d=Math.max(0,Math.floor(+document.getElementById("gDaily").value||0)),w=Math.max(0,Math.round((+document.getElementById("gWeekly").value||0)*60));
+      await updateCloud(s=>{s.goalDaily=Math.min(1440,d);s.goalWeekly=Math.min(10080,w);return s});
+      showStats();const nb=document.querySelector('[data-act="goalSave"]');if(nb)nb.textContent="✓ 保存";
+    }
+    else if(a==="catAdd"){
+      const n=document.getElementById("newCat").value.trim().slice(0,16);if(!n)return;
+      if(state.categories.length>=12){errModal("分野は12個までです");return}
+      await updateCloud(s=>{s.categories.push({id:"c"+Date.now().toString(36),name:n,color:PALETTE[s.categories.length%PALETTE.length]});return s});showStats();
+    }
+    else if(a==="catEdit"){
+      const n=(prompt("分野名を入力",catOf(id).name)||"").trim().slice(0,16);if(!n)return;
+      await updateCloud(s=>{const c=s.categories.find(c=>c.id===id);if(c)c.name=n;return s});showStats();
+    }
+    else if(a==="catDel"){
+      if(state.categories.length<=1){errModal("分野は1つ以上必要です");return}
+      if(!confirm(`「${catOf(id).name}」を削除しますか？\n過去の記録は「その他」として残ります。`))return;
+      await updateCloud(s=>{s.categories=s.categories.filter(c=>c.id!==id);return s});showStats();
+    }
+    else if(a==="logDel"){
+      if(!confirm("この記録を取り消しますか？\n（獲得済みの回数券は戻りません）"))return;
+      await updateCloud(s=>{
+        const l=s.studyLog.find(x=>x.id===id);if(!l)throw new Error("LOG_NOT_FOUND");
+        const day=s.studyDays[l.dk];if(day&&day[l.cat]){day[l.cat]=Math.max(0,day[l.cat]-l.min);if(!day[l.cat])delete day[l.cat];if(!Object.keys(day).length)delete s.studyDays[l.dk]}
+        s.totalStudy=Math.max(0,s.totalStudy-l.min);if(l.dk===s.lastStudyDate)s.todayStudy=Math.max(0,s.todayStudy-l.min);
+        s.studyLog=s.studyLog.filter(x=>x.id!==id);return s;
+      });showStats();
+    }
+  }catch(err){console.error(err);errModal("保存できませんでした","通信状況を確認してください。")}
+});
+
+/* --- 管理画面の追加項目（ミッション報酬・プリセット） --- */
+const _showAdminOrig=showAdmin;
+showAdmin=function(){_showAdminOrig();adminExtras()};
+function adminExtras(){
+  const a=document.getElementById("admin"),anc=a.querySelector(".adminMainActions");if(!anc)return;
+  const c=state.missionCfg,num=(id,l,v)=>`<div><label>${l}</label><input id="${id}" type="number" min="0" max="99" value="${v}"></div>`;
+  const pl=state.presets.map(p=>`<div class="logRow"><span><b>${escapeHtml(p.name)}</b><br><small>${p.from==="blue"?"🔵":"🔴"} ${escapeHtml(p.g.name)} ・ ${escapeHtml(p.savedAt)}</small></span><span><button data-ax="psApply" data-t="red" data-id="${escapeHtml(p.id)}">🔴へ</button> <button data-ax="psApply" data-t="blue" data-id="${escapeHtml(p.id)}">🔵へ</button> <button data-ax="psDel" data-id="${escapeHtml(p.id)}">削除</button></span></div>`).join("")||'<div class="empty">保存したプリセットはまだありません。</div>';
+  anc.insertAdjacentHTML("beforebegin",`<div id="adminExtra"><div class="sectionTitle">🎯 デイリーミッション報酬</div><div class="adminGrid">${num("mcT1","ミッション1：回数券",c.t1)}${num("mcT2","ミッション2：回数券",c.t2)}${num("mcT3","ミッション3：回数券",c.t3)}${num("mcTb","全達成ボーナス：回数券",c.tb)}</div><div class="adminGrid"><div><label>全達成ボーナスのごほうび（空欄で回数券のみ）</label><input id="mcRew" maxlength="20" value="${escapeHtml(c.bonusReward)}" placeholder="例：好きなスイーツ"></div><div><label>ごほうびのレアリティ</label><select id="mcRar">${["SR","SSR","UR"].map(r=>`<option ${c.bonusRarity===r?"selected":""}>${r}</option>`).join("")}</select></div></div><button class="smallbtn" data-ax="mcSave">ミッション報酬を保存</button><div class="sectionTitle">💾 ガチャ設定プリセット</div><div class="note">現在<b>保存済み</b>のガチャ設定（名前・コメント・ルール・天井・排出設定・11回目の確率）を保存して、あとから赤・青どちらにも呼び出せます。管理画面で編集した内容は、先に「修正を保存」してからプリセットにしてください。</div><div class="adminGrid" style="margin-top:8px"><button class="smallbtn" data-ax="psSave" data-t="red">🔴 赤の設定を保存</button><button class="smallbtn" data-ax="psSave" data-t="blue">🔵 青の設定を保存</button></div><div class="chartBox" style="margin-top:10px">${pl}</div></div>`);
+}
+document.getElementById("admin").addEventListener("click",async e=>{
+  const b=e.target.closest("[data-ax]");if(!b)return;
+  const a=b.dataset.ax,t=b.dataset.t,id=b.dataset.id,v=i=>Math.min(99,Math.max(0,Math.floor(+document.getElementById(i).value||0)));
+  try{
+    if(a==="mcSave"){
+      const f={t1:v("mcT1"),t2:v("mcT2"),t3:v("mcT3"),tb:v("mcTb"),bonusReward:document.getElementById("mcRew").value.trim().slice(0,20),bonusRarity:document.getElementById("mcRar").value};
+      await updateCloud(s=>{s.missionCfg=f;return s});b.textContent="✓ 保存しました";
+    }else if(a==="psSave"){
+      const name=(prompt("プリセット名を入力",state.gachas[t].name)||"").trim();if(!name)return;
+      await updateCloud(s=>{
+        if(s.presets.length>=20)throw new Error("PRESET_FULL");
+        const g=s.gachas[t],enc=encodeTables(s.tables);
+        s.presets.push({id:makeId("pr"),name:name.slice(0,30),savedAt:new Date().toLocaleDateString("ja-JP"),from:t,g:{name:g.name,comment:g.comment,rules:g.rules||"",ceiling:{...normalizeCeiling(g.ceiling),progress:0}},main:enc[t],bonus:enc[t+"Bonus"]});
+        return s;
+      });showAdmin();
+    }else if(a==="psApply"){
+      const p=state.presets.find(x=>x.id===id);if(!p)return;
+      if(!confirm(`「${p.name}」を${t==="red"?"赤":"青"}がちゃに適用します。\n名前・コメント・天井・排出設定が上書きされます（天井の回数は0に戻ります）。よろしいですか？`))return;
+      await updateCloud(s=>{
+        const q=s.presets.find(x=>x.id===id);if(!q)throw new Error("PRESET_NOT_FOUND");
+        const ok=new Set(s.materials.map(m=>m.id)),fix=rows=>rows.map(normalizeTableRow).map(r=>ok.has(r[3])?r:[r[0],r[1],r[2],"",0]);
+        s.tables[t]=fix(q.main);if(q.bonus.length===5)s.tables[t+"Bonus"]=fix(q.bonus);
+        const o=s.gachas[t];
+        s.gachas[t]={...o,name:q.g.name||o.name,comment:q.g.comment,rules:q.g.rules,ceiling:{...q.g.ceiling,items:q.g.ceiling.items.map(it=>ok.has(it.materialId)?it:{...it,materialId:"",materialQty:0}),progress:0}};
+        return s;
+      });showAdmin();
+    }else if(a==="psDel"){
+      if(!confirm("このプリセットを削除しますか？"))return;
+      await updateCloud(s=>{s.presets=s.presets.filter(x=>x.id!==id);return s});showAdmin();
+    }
+  }catch(err){console.error(err);errModal("保存できませんでした",err.message==="PRESET_FULL"?"プリセットは20件までです。":"通信状況を確認してください。")}
+});
+
+setInterval(()=>{if(cloudReady)render()},10000);
+
+setInterval(async()=>{
+  if(!cloudReady)return;
+  const expected=studyDateKey(new Date(),state.resetTime);
+  if(state.lastStudyDate!==expected){
+    try{await updateCloud(s=>s)}catch(err){console.error(err)}
+  }
+},30000);
+
+async function init(){
+  try{
+    render();
+    await ensureCloudState();
+  }catch(err){
+    console.error("宅建がちゃ 初期化エラー",err);
+    cloudReady=false;
+    try{state=readLocalSeed();render();}catch(renderErr){console.error("初期画面表示エラー",renderErr)}
+    setCloudStatus("⚠️ Firebase接続エラー");
+    openModal(`<h2>Firebaseに接続できません</h2><p>Firebaseへの接続または初期画面の準備中にエラーが発生しました。</p><p style="font-size:12px;text-align:left;word-break:break-word;background:#111;color:#fff;padding:10px;border-radius:8px;">${escapeHtml((err && (err.code || err.message)) ? ((err.code||"") + " " + (err.message||"")) : String(err))}</p><button class="singleBtn" id="modalCloseBtn">OK</button>`);
+  }
+}
+setInterval(()=>{if(cloudReady)refreshCloud().catch(console.error);},60000);
+
+/* ===== v44: IDログイン + ユーザーごとのデータ（デバッグ版） ===== */
+const OWNER_EMAIL="ここに管理者のGmailアドレス";   // ← 管理者（あなた）のGoogleアカウントに書き換え
+const SHARED_REF=doc(db,"devShared","main");
+const SH_KEYS=["tables","gachas","materials","exchangeShop","examDate","resetTime","missionCfg","presets","gachaPassword"];
+const auth=getAuth(app),authGate=document.getElementById("authGate"),lcs=s=>String(s||"").toLowerCase();
+let me=null,isOwner=false,authStarted=false,ACTIVE_ID="",ACTIVE_NAME="";
+const userRef=()=>doc(db,"devData",ACTIVE_ID),linkRef=u=>doc(db,"devLinks",u),profRef=id=>doc(db,"devUsers",id);
+const sj=o=>JSON.stringify(o,(k,v)=>v&&typeof v==="object"&&!Array.isArray(v)?Object.fromEntries(Object.entries(v).sort()):v);
+/* 共有データ(devShared)と個人データ(devData/ID)を、従来の1つのstateとして合成・分割する */
+function mergeRaw(sh,us){const r={...sh,...us};if(sh.gachas){r.gachas=clone(sh.gachas);for(const k of["red","blue"])if(r.gachas[k])r.gachas[k].ceiling={...(r.gachas[k].ceiling||{}),progress:(us.ceilProgress||{})[k]||0}}delete r.ceilProgress;return r}
+const mkSnap=(a,b)=>({exists:()=>a.exists()||b.exists(),data:()=>mergeRaw(a.exists()?a.data():{},b.exists()?b.data():{})});
+async function readTx(tx){const[a,b]=await Promise.all([tx.get(SHARED_REF),tx.get(userRef())]);tx.__sh=a.exists()?sj(a.data()):null;return mkSnap(a,b)}
+function writeTx(tx,x){
+  const sh={},us={};for(const[k,v]of Object.entries(x))(SH_KEYS.includes(k)?sh:us)[k]=v;
+  us.ceilProgress={};for(const k of["red","blue"]){const c=sh.gachas&&sh.gachas[k]&&sh.gachas[k].ceiling;if(c){us.ceilProgress[k]=c.progress||0;c.progress=0}}
+  tx.set(userRef(),us);if(isOwner&&sj(sh)!==tx.__sh)tx.set(SHARED_REF,sh);
+}
+async function readMerged(){const[a,b]=await Promise.all([getDoc(SHARED_REF),getDoc(userRef())]);return mkSnap(a,b)}
+async function deleteMine(){await deleteDoc(userRef())}
+async function importLegacy(){
+  try{if((await getDoc(SHARED_REF)).exists())return;const o=await getDoc(doc(db,"app","devState"));if(!o.exists())return;
+    const x=toFirestoreState(normalizeState(o.data())),sh={};for(const k of SH_KEYS)if(k in x)sh[k]=x[k];
+    if(sh.gachas)for(const k of["red","blue"])if(sh.gachas[k]&&sh.gachas[k].ceiling)sh.gachas[k].ceiling.progress=0;
+    await setDoc(SHARED_REF,sh)}catch(e){console.warn(e)}
+}
+/* ログイン画面 */
+const rid=()=>Array.from(crypto.getRandomValues(new Uint8Array(8)),b=>"abcdefghjkmnpqrstuvwxyz23456789"[b%31]).join("");
+const okId=s=>/^[a-z0-9_-]{3,24}$/.test(s);
+function gateHtml(inner){authGate.className="show";authGate.innerHTML=`<div class="gBox"><img class="logo" src="icon-512.png" alt="" onerror="this.style.display='none'"><h1>宅建がちゃ</h1>${inner}</div>`}
+function showId(msg){
+  gateHtml(`<p>${msg||"配られたIDを入力してください。<br>一度入力すれば、次回からは自動でログインされます。"}</p><input id="gId" maxlength="24" autocapitalize="none" autocomplete="off" placeholder="ID"><button id="gGo" class="gBtn">はじめる</button><button id="gAdm" class="gLink">管理者ログイン</button>`);
+  const i=document.getElementById("gId");i.onkeydown=e=>{if(e.key==="Enter")idLogin()};
+  document.getElementById("gGo").onclick=idLogin;document.getElementById("gAdm").onclick=adminLogin;
+}
+async function idLogin(){
+  const id=lcs(document.getElementById("gId").value.trim());
+  if(!okId(id)){showId("IDは英数字・「-」「_」の3〜24文字です。");return}
+  try{const p=await getDoc(profRef(id));if(!p.exists()){showId("このIDは登録されていません。");return}await setDoc(linkRef(me.uid),{id});begin(id,p.data().name)}
+  catch(e){console.warn(e);showId("確認できませんでした（"+escapeHtml(e.code||e.message)+"）")}
+}
+async function adminLogin(){
+  const p=new GoogleAuthProvider();p.setCustomParameters({prompt:"select_account"});
+  try{await signInWithPopup(auth,p)}catch(e){if(e.code==="auth/popup-blocked")await signInWithRedirect(auth,p);else if(!/popup-closed|cancelled/.test(e.code||""))showId("管理者ログインできませんでした（"+escapeHtml(e.code||e.message)+"）")}
+}
+onAuthStateChanged(auth,async u=>{
+  me=u;
+  if(!u){signInAnonymously(auth).catch(e=>gateHtml(`<p>ログインを開始できません。<br>Firebaseの Authentication で「匿名」を有効にしてください。<br><small>${escapeHtml(e.code||"")}</small></p>`));return}
+  if(!u.isAnonymous){
+    if(OWNER_EMAIL.includes("ここに")||lcs(u.email)!==lcs(OWNER_EMAIL)){gateHtml(`<p>このアカウントは管理者ではありません。<br><small>（管理者のメール設定 OWNER_EMAIL も確認してください）</small></p><button id="gOut" class="gBtn sub">戻る</button>`);document.getElementById("gOut").onclick=()=>signOut(auth);return}
+    isOwner=true;await importLegacy();
+    const last=localStorage.getItem("ownerId");
+    if(last){try{const p=await getDoc(profRef(last));if(p.exists()){begin(last,p.data().name);return}}catch(e){console.warn(e)}}
+    showPicker();return;
+  }
+  isOwner=false;
+  try{const l=await getDoc(linkRef(u.uid));if(l.exists()){const p=await getDoc(profRef(l.data().id));if(p.exists()){begin(l.data().id,p.data().name);return}await deleteDoc(linkRef(u.uid))}}catch(e){console.warn(e)}
+  showId();
+});
+function begin(id,name){
+  ACTIVE_ID=id;ACTIVE_NAME=name||id;KEY="takken_gacha_dev_u_"+id;OLD_KEY="takken_gacha_dev_u_old";
+  if(isOwner)localStorage.setItem("ownerId",id);
+  authGate.className="";authGate.innerHTML="";document.body.classList.toggle("owner",isOwner);
+  document.querySelector(".app").insertAdjacentHTML("beforeend",`<div id="whoami" class="whoami">プレイ中：<b>${escapeHtml(ACTIVE_NAME)}</b>（${escapeHtml(id)}）${isOwner?' ・ <button id="gSwitch">ユーザー切替</button>':""} ・ <button id="gSignOut">ログアウト</button></div>`);
+  document.getElementById("gSignOut").onclick=async()=>{if(!confirm("ログアウトしますか？"))return;try{localStorage.removeItem("ownerId");if(isOwner)await signOut(auth);else await deleteDoc(linkRef(me.uid))}catch(e){console.warn(e)}location.reload()};
+  const sw=document.getElementById("gSwitch");if(sw)sw.onclick=()=>{localStorage.removeItem("ownerId");location.reload()};
+  if(!authStarted){authStarted=true;init()}
+}
+/* 管理者: ユーザー管理 */
+const newUserForm=()=>`<div class="inl" style="grid-template-columns:1fr 1fr auto auto;margin-top:10px"><label>名前<input id="nuName" maxlength="12" placeholder="例：ゆうき"></label><label>ID<input id="nuId" maxlength="24" placeholder="3〜24文字" autocapitalize="none"></label><button class="smallbtn" data-rid="1" title="ランダムID">🎲</button><button class="smallbtn" data-newuser="1">作成</button></div><div class="note">IDを知っている人はそのユーザーとして入れます。推測されにくいID（🎲）をおすすめします。</div>`;
+async function usersRows(){
+  try{const s=await getDocs(collection(db,"devUsers"));return s.docs.map(d=>`<div class="logRow"><span><b>${escapeHtml(d.data().name||d.id)}</b>${d.id===ACTIVE_ID?" ✅":""}<br><small>ID：${escapeHtml(d.id)}</small></span><span><button data-open="${escapeHtml(d.id)}">開く</button> <button data-del="${escapeHtml(d.id)}">削除</button></span></div>`).join("")||'<div class="empty">まだユーザーがいません。</div>'}
+  catch(e){return"読み込めませんでした"}
+}
+async function showPicker(){gateHtml(`<p>プレイするユーザーを選ぶか、新しく作成してください。</p><div class="gList" id="uList">読み込み中…</div>${newUserForm()}<button id="gOut" class="gLink">ログアウト</button>`);document.getElementById("gOut").onclick=()=>signOut(auth);document.getElementById("uList").innerHTML=await usersRows()}
+const _showAdminId=showAdmin;
+showAdmin=function(){if(!isOwner)return;_showAdminId();const ex=document.getElementById("adminExtra");if(ex){ex.insertAdjacentHTML("beforebegin",`<div id="userBox"><div class="sectionTitle">👥 ユーザー管理（いま編集中：${escapeHtml(ACTIVE_NAME)}）</div><div class="note">ガチャの内容・素材・交換所などは全員共通です。勉強記録・BOX・回数券・履歴は、IDごとに別々に保存されます。</div><div class="chartBox" id="uList">読み込み中…</div>${newUserForm()}</div>`);usersRows().then(h=>{const e=document.getElementById("uList");if(e)e.innerHTML=h})}};
+document.addEventListener("click",async e=>{
+  const b=e.target.closest("[data-open],[data-del],[data-newuser],[data-rid]");if(!b||!isOwner)return;
+  try{
+    if(b.dataset.rid){document.getElementById("nuId").value=rid();return}
+    if(b.dataset.open){localStorage.setItem("ownerId",b.dataset.open);location.reload();return}
+    if(b.dataset.del){if(!confirm(`ID「${b.dataset.del}」を削除しますか？\nこのユーザーの勉強記録やBOXも消えます。`))return;
+      await deleteDoc(profRef(b.dataset.del));try{await deleteDoc(doc(db,"devData",b.dataset.del))}catch(x){console.warn(x)}
+      if(b.dataset.del===ACTIVE_ID){localStorage.removeItem("ownerId");location.reload();return}
+    }
+    if(b.dataset.newuser){
+      const id=lcs(document.getElementById("nuId").value.trim()),name=document.getElementById("nuName").value.trim().slice(0,12)||id;
+      if(!okId(id)){errModal("IDを確認してください","英数字・「-」「_」の3〜24文字です。");return}
+      if((await getDoc(profRef(id))).exists()){errModal("そのIDは使われています");return}
+      await setDoc(profRef(id),{name,createdAt:Date.now()});
+    }
+    const h=await usersRows();const l=document.getElementById("uList");if(l)l.innerHTML=h;
+  }catch(err){console.error(err);errModal("保存できませんでした","通信状況を確認してください。")}
+});
+
+</script>
+<div id="authGate" class="show"><div class="gBox"><p>読み込み中…</p></div></div>
+<script>
+(function(){
+  const $=id=>document.getElementById(id),body=document.body,det=$("detail"),adm=$("admin");
+  const tabs=[["home","🏠","ホーム"],["statsBtn","📊","勉強"],["rewardBoxBtn","🎁","BOX"],["materialBtn","🧩","交換所"],["historyBtn","📜","履歴"]];
+  const bar=document.createElement("nav");bar.className="tabbar";
+  bar.innerHTML='<div class="in">'+tabs.map(t=>`<button class="tab ${t[0]==="home"?"on":""}" data-t="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join("")+"</div>";
+  const bg=document.createElement("div");bg.id="sheetBg";
+  body.append(bg,bar);
+  const mark=id=>bar.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===id));
+  const closeSheets=()=>{det.classList.remove("open");adm.classList.remove("open")};
+  bar.onclick=e=>{const b=e.target.closest(".tab");if(!b)return;const t=b.dataset.t;
+    if(t==="home"){closeSheets();window.scrollTo({top:0,behavior:"smooth"})}
+    else{mark(t);$(t).click()}};
+  bg.onclick=closeSheets;
+  [det,adm].forEach(el=>el.addEventListener("click",e=>{if(e.target===el&&e.offsetY<34)closeSheets()}));
+  new MutationObserver(()=>{const o=det.classList.contains("open")||adm.classList.contains("open");body.classList.toggle("sheet",o);if(!o)mark("home")}).observe(det,{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(()=>{const o=det.classList.contains("open")||adm.classList.contains("open");body.classList.toggle("sheet",o);if(!o)mark("home")}).observe(adm,{attributes:true,attributeFilter:["class"]});
+  const head=document.querySelector(".head");
+  head.insertAdjacentHTML("afterbegin",'<img class="logo" src="icon-512.png" alt="" onerror="this.style.display=\'none\'">');
+  const g=document.createElement("button");g.className="gear";g.textContent="⚙";g.setAttribute("aria-label","管理");g.onclick=()=>{mark("");$("adminBtn").click()};head.appendChild(g);
+})();
+</script>
+</body>
+</html>
