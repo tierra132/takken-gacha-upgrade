@@ -995,7 +995,7 @@ async function init(){
 setInterval(()=>{if(cloudReady)refreshCloud().catch(console.error);},60000);
 
 /* ===== v44: IDログイン + ユーザーごとのデータ（デバッグ版） ===== */
-const OWNER_EMAIL="ここに管理者のGmailアドレス";   // ← 管理者（あなた）のGoogleアカウントに書き換え
+const OWNER_EMAIL="i.shou4338@gmail.com";   // ← 管理者（あなた）のGoogleアカウントに書き換え
 const DATA_COLLECTIONS={shared:"devShared",user:"devData",links:"devLinks",profiles:"devUsers",legacy:"devState"};
 const SHARED_REF=doc(db,DATA_COLLECTIONS.shared,"main");
 const SH_KEYS=["tables","gachas","materials","exchangeShop","examDate","resetTime","missionCfg","presets","gachaPassword"];
