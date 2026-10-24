@@ -136,8 +136,8 @@ button{font-family:inherit;transition:transform .12s,filter .12s}button:active:n
 .tab.on{background:linear-gradient(180deg,#eaf1ff,#dbe7ff);color:#1d3a8a}.tab.on span{filter:none;opacity:1;transform:translateY(-2px) scale(1.1)}
 /* bottom sheets */
 #sheetBg{position:fixed;inset:0;background:#0f1b3d66;backdrop-filter:blur(3px);z-index:7;opacity:0;pointer-events:none;transition:opacity .25s}body.sheet #sheetBg{opacity:1;pointer-events:auto}body.sheet{overflow:hidden}
-.detail.open,.admin.open{position:fixed;left:50%;transform:translateX(-50%);width:min(720px,100%);bottom:calc(74px + env(safe-area-inset-bottom));max-height:calc(100dvh - 110px - env(safe-area-inset-top));overflow:auto;z-index:8;margin:0;border-radius:28px 28px 22px 22px;padding:30px 16px 18px;box-shadow:0 -10px 40px #0f1b3d40;animation:sheetUp .3s cubic-bezier(.2,.9,.3,1);-webkit-overflow-scrolling:touch}
-.detail.open:before,.admin.open:before{content:"";position:absolute;top:10px;left:50%;width:44px;height:5px;margin-left:-22px;border-radius:5px;background:#cfd6e4}
+.admin.open{position:fixed;left:50%;transform:translateX(-50%);width:min(720px,100%);bottom:calc(74px + env(safe-area-inset-bottom));max-height:calc(100dvh - 110px - env(safe-area-inset-top));overflow:auto;z-index:8;margin:0;border-radius:28px 28px 22px 22px;padding:30px 16px 18px;box-shadow:0 -10px 40px #0f1b3d40;animation:sheetUp .3s cubic-bezier(.2,.9,.3,1);-webkit-overflow-scrolling:touch}
+.admin.open:before{content:"";position:absolute;top:10px;left:50%;width:44px;height:5px;margin-left:-22px;border-radius:5px;background:#cfd6e4}
 .detail h3,.admin h3{font-size:19px;margin:0 0 12px}
 @keyframes sheetUp{from{transform:translate(-50%,40px);opacity:0}}
 .sectionTitle{font-size:14px;letter-spacing:.3px}
@@ -205,13 +205,28 @@ body:not(.owner) .gear,body:not(.owner) #adminBtn{display:none!important}
 58%{transform:translate(calc(var(--dx)*.5),calc(var(--h) - 34px)) rotate(calc(var(--rot)*.5));animation-timing-function:ease-in}
 72%{transform:translate(calc(var(--dx)*.7),var(--h)) rotate(calc(var(--rot)*.7));animation-timing-function:linear}
 100%{transform:translate(var(--dx),calc(var(--h) + 6px)) rotate(var(--rot));opacity:0}}
+
+/* v47: 画面切替（ホーム／勉強／ガチャ／BOX／交換）・ロゴ画像なし */
+.head{grid-template-columns:1fr auto}.head p{grid-column:1}.gear{grid-column:2;grid-row:1/3}
+.pageBar{display:none;align-items:center;gap:10px;margin:2px 0 14px;padding:12px 14px 12px 18px;border-radius:20px;background:linear-gradient(135deg,#0f1b3d,#1d3a8a);color:#fff;box-shadow:0 10px 24px #0f1b3d33}
+.pageBar h2{margin:0;font-size:18px;color:#fff;flex:1}.pageBar .gear{grid-column:auto;grid-row:auto;width:36px;height:36px;font-size:16px}
+.pbTk{background:linear-gradient(135deg,#ffd35a,#f29a1b);color:#4a2c00;border-radius:999px;padding:6px 12px;font-weight:900;font-size:13px;white-space:nowrap}
+body:not(.pg-home) .pageBar{display:flex}
+body:not(.pg-home) .head,body:not(.pg-home) .status,body:not(.pg-home) .debugBanner,body:not(.pg-home) .whoami,body:not(.pg-home) .study,body:not(.pg-home) .missions{display:none!important}
+body:not(.pg-gacha) .gachas,body:not(.pg-gacha) #gHist{display:none!important}
+body.pg-home .detail{display:none!important}
+.gachas{margin-top:0}
+#gHist{margin-top:14px}#gHist button{width:100%;border:0;border-radius:16px;padding:14px;font-weight:900;font-size:15px;background:#fff;color:#1d3a8a;box-shadow:0 6px 18px #1d3a8a14}
+.detail{margin-top:14px}
+.tab.mid{background:linear-gradient(135deg,#ff5a4d,#b01e33);color:#fff;margin-top:-14px;padding:10px 0 7px;border-radius:20px;box-shadow:0 8px 16px #c9343466}
+.tab.mid span{font-size:26px;filter:none;opacity:1}.tab.mid.on{background:linear-gradient(135deg,#ff5a4d,#b01e33);color:#fff;box-shadow:0 8px 20px #c9343499}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="debugBanner">🧪 デバッグ版</div>
   
-  <header class="head"><div class="appVersion">ver.6.3.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
+  <header class="head"><div class="appVersion">ver.6.4.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
 
   <section class="status">
     <div class="stat"><div class="label">🎫 ガチャ可能回数</div><div class="value" id="tickets">0枚</div></div>
@@ -1099,7 +1114,7 @@ async function readMerged(){const[a,b]=await Promise.all([getDoc(SHARED_REF),get
 async function deleteMine(){await deleteDoc(userRef())}
 /* ---- ログイン / 新規登録 ---- */
 const errMsg=e=>({"auth/invalid-credential":"IDまたはパスワードが違います。","auth/wrong-password":"IDまたはパスワードが違います。","auth/user-not-found":"IDまたはパスワードが違います。","auth/too-many-requests":"試行回数が多すぎます。しばらくしてからやり直してください。","auth/network-request-failed":"通信に失敗しました。","auth/operation-not-allowed":"Firebaseで「メール/パスワード」ログインが有効になっていません。","auth/weak-password":"パスワードは6文字以上にしてください。","permission-denied":"権限がありません（Firebaseルールを確認してください）。"}[e&&e.code]||("エラー："+((e&&(e.code||e.message))||e)));
-function gateHtml(inner){authGate.className="show";authGate.innerHTML=`<div class="gBox"><img class="logo" src="icon-512.png" alt="" onerror="this.style.display='none'"><h1>宅建がちゃ</h1>${inner}</div>`}
+function gateHtml(inner){authGate.className="show";authGate.innerHTML=`<div class="gBox"><h1>宅建がちゃ</h1>${inner}</div>`}
 function onEnter(id,fn){document.getElementById(id).onkeydown=e=>{if(e.key==="Enter")fn()}}
 function showLogin(msg,id=""){
   gateHtml(`<p>${msg||"ユーザーIDとパスワードを入力してください。<br><small>はじめての方は、新しいIDとパスワードを入力すると登録できます。</small>"}</p><input id="gId" maxlength="24" autocapitalize="none" autocomplete="username" placeholder="ユーザーID（英数字）" value="${escapeHtml(id)}"><input id="gPass" type="password" maxlength="64" autocomplete="current-password" placeholder="パスワード（6文字以上）"><button id="gGo" class="gBtn">ログイン / 新規登録</button><button id="gAdm" class="gLink">🔑 管理者ログイン</button>`);
@@ -1226,24 +1241,38 @@ document.getElementById("admin").addEventListener("click",e=>{const b=e.target.c
 <div id="authGate" class="show"><div class="gBox"><p>読み込み中…</p></div></div>
 <script>
 (function(){
-  const $=id=>document.getElementById(id),body=document.body,det=$("detail"),adm=$("admin");
-  const tabs=[["home","🏠","ホーム"],["statsBtn","📊","勉強"],["rewardBoxBtn","🎁","BOX"],["materialBtn","🧩","交換所"],["historyBtn","📜","履歴"]];
+  const $=id=>document.getElementById(id),body=document.body,det=$("detail"),adm=$("admin"),app=document.querySelector(".app");
+  const PAGES=["home","study","gacha","box","ex"],OPEN={study:"statsBtn",box:"rewardBoxBtn",ex:"materialBtn"},TITLE={study:"📊 勉強",gacha:"🎰 ガチャ",box:"🎁 ごほうびBOX",ex:"🧩 素材・交換所"};
+  const T=[["home","🏠","ホーム"],["study","📊","勉強"],["gacha","🎰","ガチャ"],["box","🎁","BOX"],["ex","🧩","交換"]];
+  const gear=()=>{const g=document.createElement("button");g.className="gear";g.textContent="⚙";g.setAttribute("aria-label","管理");g.onclick=()=>$("adminBtn").click();return g};
+  /* ページ共通の見出しバー（ホーム以外で表示） */
+  app.insertAdjacentHTML("afterbegin",'<div class="pageBar" id="pageBar"><h2 id="pbTitle"></h2><span class="pbTk">🎫 <b id="pbTickets">0</b>枚</span></div>');
+  $("pageBar").appendChild(gear());document.querySelector(".head").appendChild(gear());
+  /* ガチャ画面に履歴ボタン */
+  document.querySelector(".gachas").insertAdjacentHTML("afterend",'<div id="gHist"><button id="histOpen">📜 ガチャ履歴</button></div>');
+  $("histOpen").onclick=()=>$("historyBtn").click();
+  /* 下のタブバー: ホーム／勉強／ガチャ(中央)／BOX／交換 */
   const bar=document.createElement("nav");bar.className="tabbar";
-  bar.innerHTML='<div class="in">'+tabs.map(t=>`<button class="tab ${t[0]==="home"?"on":""}" data-t="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join("")+"</div>";
-  const bg=document.createElement("div");bg.id="sheetBg";
-  body.append(bg,bar);
-  const mark=id=>bar.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===id));
-  const closeSheets=()=>{det.classList.remove("open");adm.classList.remove("open")};
-  bar.onclick=e=>{const b=e.target.closest(".tab");if(!b)return;const t=b.dataset.t;
-    if(t==="home"){closeSheets();window.scrollTo({top:0,behavior:"smooth"})}
-    else{mark(t);$(t).click()}};
-  bg.onclick=closeSheets;
-  [det,adm].forEach(el=>el.addEventListener("click",e=>{if(e.target===el&&e.offsetY<34)closeSheets()}));
-  new MutationObserver(()=>{const o=det.classList.contains("open")||adm.classList.contains("open");body.classList.toggle("sheet",o);if(!o)mark("home")}).observe(det,{attributes:true,attributeFilter:["class"]});
-  new MutationObserver(()=>{const o=det.classList.contains("open")||adm.classList.contains("open");body.classList.toggle("sheet",o);if(!o)mark("home")}).observe(adm,{attributes:true,attributeFilter:["class"]});
-  const head=document.querySelector(".head");
-  head.insertAdjacentHTML("afterbegin",'<img class="logo" src="icon-512.png" alt="" onerror="this.style.display=\'none\'">');
-  const g=document.createElement("button");g.className="gear";g.textContent="⚙";g.setAttribute("aria-label","管理");g.onclick=()=>{mark("");$("adminBtn").click()};head.appendChild(g);
+  bar.innerHTML='<div class="in">'+T.map(t=>`<button class="tab${t[0]==="gacha"?" mid":""}" data-t="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join("")+"</div>";
+  const bg=document.createElement("div");bg.id="sheetBg";body.append(bg,bar);
+  const mark=p=>bar.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===p));
+  function go(p){
+    PAGES.forEach(x=>body.classList.toggle("pg-"+x,x===p));
+    adm.classList.remove("open");det.classList.remove("open");det.innerHTML="";
+    mark(p);$("pbTitle").textContent=TITLE[p]||"";
+    if(OPEN[p])$(OPEN[p]).click();
+    window.scrollTo(0,0);
+  }
+  bar.onclick=e=>{const b=e.target.closest(".tab");if(b)go(b.dataset.t)};
+  /* 管理画面だけは下から出るシート */
+  const closeSheet=()=>adm.classList.remove("open");
+  bg.onclick=closeSheet;
+  adm.addEventListener("click",e=>{if(e.target===adm&&e.offsetY<34)closeSheet()});
+  new MutationObserver(()=>body.classList.toggle("sheet",adm.classList.contains("open"))).observe(adm,{attributes:true,attributeFilter:["class"]});
+  /* 回数券の枚数を見出しバーにも反映 */
+  const tk=$("tickets"),syncTk=()=>{$("pbTickets").textContent=tk.textContent.replace("枚","")};
+  new MutationObserver(syncTk).observe(tk,{childList:true,characterData:true,subtree:true});syncTk();
+  go("home");
 })();
 </script>
 </body>
