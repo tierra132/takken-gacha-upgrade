@@ -69,10 +69,10 @@
 /* 排出演出 */
 .gStage{--rc:#9aa0a6;--cc:#e0453a;position:relative;height:220px;border-radius:16px;margin-bottom:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 55%,#fff 0,#eef1f6 70%);cursor:pointer}
 .gStage.r{--rc:#4779bd}.gStage.sr{--rc:#7953a6}.gStage.ssr{--rc:#e0a21a}.gStage.ur{--rc:#d63a3a}.gStage.cap-red{--cc:#e0453a}.gStage.cap-blue{--cc:#3b7be0}.gStage.cap-yel{--cc:#f2b01e}
-.capsule{position:absolute;width:92px;height:92px;border-radius:50%;background:linear-gradient(180deg,var(--cc) 0 50%,#fff 50% 100%);border:3px solid #0002;box-shadow:inset -8px -8px 0 #0000001a,0 10px 18px #0003;animation:cDrop .5s cubic-bezier(.3,1.4,.5,1) both,cShake var(--shk) ease-in-out .5s forwards,cBurst .22s ease-in calc(.5s + var(--shk)) forwards}
+.capsule{position:absolute;width:92px;height:92px;border-radius:50%;background:linear-gradient(180deg,var(--cc) 0 50%,#fff 50% 100%);border:3px solid #0002;box-shadow:inset -8px -8px 0 #0000001a,0 10px 18px #0003;animation:cDrop var(--dr) cubic-bezier(.3,1.4,.5,1) both,cShake var(--shk) ease-in-out var(--dr) forwards,cBurst .22s ease-in calc(var(--dr) + var(--shk)) forwards}
 .capsule:after{content:"";position:absolute;left:14px;top:12px;width:22px;height:12px;border-radius:50%;background:#fff9;transform:rotate(-30deg)}
-.gStage.cap-ur .capsule{background:linear-gradient(180deg,transparent 0 50%,#20203a 50% 100%),conic-gradient(from 0deg,#ff4d6d,#ffd54a,#4dff9a,#4dc3ff,#c792ea,#ff4d6d);box-shadow:0 0 30px #ffd54a,0 0 64px #ff4d6d88,inset -8px -8px 0 #0000001a;animation:cDrop .5s cubic-bezier(.3,1.4,.5,1) both,cShake var(--shk) ease-in-out .5s forwards,cBurst .22s ease-in calc(.5s + var(--shk)) forwards,cHue 1.1s linear infinite}@keyframes cHue{to{filter:hue-rotate(360deg)}}
-.gFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;animation:cFlash .5s ease-out calc(.5s + var(--shk)) both}
+.gStage.cap-ur .capsule{background:linear-gradient(180deg,transparent 0 50%,#20203a 50% 100%),conic-gradient(from 0deg,#ff4d6d,#ffd54a,#4dff9a,#4dc3ff,#c792ea,#ff4d6d);box-shadow:0 0 30px #ffd54a,0 0 64px #ff4d6d88,inset -8px -8px 0 #0000001a;animation:cDrop var(--dr) cubic-bezier(.3,1.4,.5,1) both,cShake var(--shk) ease-in-out var(--dr) forwards,cBurst .22s ease-in calc(var(--dr) + var(--shk)) forwards,cHue 1.1s linear infinite}@keyframes cHue{to{filter:hue-rotate(360deg)}}
+.gFlash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;animation:cFlash .5s ease-out calc(var(--dr) + var(--shk)) both}
 .gStage.ssr .gFlash,.gStage.ur .gFlash{background:radial-gradient(circle,#fff 0,var(--rc) 100%)}
 .gRes{position:relative;text-align:center;opacity:0;animation:pop .55s ease var(--rv) both}
 .gTag{font-size:12px;font-weight:900;color:#b36f08;margin-top:6px}
@@ -191,20 +191,27 @@ body:not(.owner) .gear,body:not(.owner) #adminBtn{display:none!important}
 .gmSlot{position:absolute;left:50%;bottom:-2px;margin-left:-24px;width:48px;height:20px;border-radius:10px 10px 4px 4px;background:#2a1418;box-shadow:inset 0 4px 6px #000a}
 .gmMachine.run{animation:mShake .5s ease-in-out infinite}.gmMachine.run .gmKnob{animation:knobSpin 1.2s linear infinite}
 @keyframes knobSpin{to{transform:rotate(360deg)}}@keyframes mShake{25%{transform:translateX(-2px) rotate(-.6deg)}75%{transform:translateX(2px) rotate(.6deg)}}@keyframes domeBob{50%{transform:translateY(-8px) rotate(14deg)}}
-.gmTray{display:grid;grid-template-columns:repeat(var(--cols),var(--sz));justify-content:center;gap:8px;margin-top:16px}
-.miniCap{width:var(--sz);height:var(--sz);border-radius:50%;background:linear-gradient(180deg,var(--cc) 0 50%,#fff 50% 100%);box-shadow:inset -5px -5px 0 #0002,0 4px 8px #0003;position:relative}
-.miniCap:after{content:"";position:absolute;left:18%;top:14%;width:26%;height:15%;border-radius:50%;background:#fff9;transform:rotate(-30deg)}
-.miniCap.cap-red{--cc:#e0453a}.miniCap.cap-blue{--cc:#3b7be0}.miniCap.cap-yel{--cc:#f2b01e}
-.miniCap.cap-ur{background:linear-gradient(180deg,transparent 0 50%,#20203a 50% 100%),conic-gradient(from 0deg,#ff4d6d,#ffd54a,#4dff9a,#4dc3ff,#c792ea,#ff4d6d);box-shadow:0 0 18px #ffd54a,0 0 34px #ff4d6d88,inset -5px -5px 0 #0002;animation:cHue 1.1s linear infinite}
-.miniCap.out{animation:cOut .7s cubic-bezier(.3,1.3,.5,1) both}.miniCap.cap-ur.out{animation:cOut .7s cubic-bezier(.3,1.3,.5,1) both,cHue 1.1s linear infinite}
-@keyframes cOut{0%{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}15%{opacity:1}60%{transform:translate(calc(var(--dx)*.15),10px) scale(1.1)}80%{transform:translateY(-6px)}100%{transform:none}}
+.gmScene{position:relative;height:340px}
+.gmMsg{position:absolute;left:0;right:0;bottom:10px;z-index:1;text-align:center;font-weight:900;font-size:15px;letter-spacing:3px;color:#5b6475;animation:gmBlink 1s ease-in-out infinite}
+@keyframes gmBlink{50%{opacity:.35}}
+.flowCap{position:absolute;z-index:2;width:var(--sz);height:var(--sz);border-radius:50%;background:linear-gradient(180deg,var(--cc) 0 50%,#fff 50% 100%);box-shadow:inset -5px -5px 0 #0002,0 4px 8px #0003;animation:flowDrop 1.1s linear both;pointer-events:none}
+.flowCap:after{content:"";position:absolute;left:18%;top:14%;width:26%;height:15%;border-radius:50%;background:#fff9;transform:rotate(-30deg)}
+.flowCap.cap-red{--cc:#e0453a}.flowCap.cap-blue{--cc:#3b7be0}.flowCap.cap-yel{--cc:#f2b01e}
+.flowCap.cap-ur{z-index:3;background:linear-gradient(180deg,transparent 0 50%,#20203a 50% 100%),conic-gradient(from 0deg,#ff4d6d,#ffd54a,#4dff9a,#4dc3ff,#c792ea,#ff4d6d);box-shadow:0 0 18px #ffd54a,0 0 34px #ff4d6d88,inset -5px -5px 0 #0002;animation:flowDrop 1.1s linear both,cHue 1.1s linear infinite}
+@keyframes flowDrop{
+0%{transform:translate(0,0) scale(.5);opacity:0;animation-timing-function:ease-out}
+8%{transform:translate(0,6px) scale(1);opacity:1;animation-timing-function:cubic-bezier(.5,0,1,.8)}
+45%{transform:translate(calc(var(--dx)*.35),var(--h)) rotate(calc(var(--rot)*.35));animation-timing-function:ease-out}
+58%{transform:translate(calc(var(--dx)*.5),calc(var(--h) - 34px)) rotate(calc(var(--rot)*.5));animation-timing-function:ease-in}
+72%{transform:translate(calc(var(--dx)*.7),var(--h)) rotate(calc(var(--rot)*.7));animation-timing-function:linear}
+100%{transform:translate(var(--dx),calc(var(--h) + 6px)) rotate(var(--rot));opacity:0}}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="debugBanner">🧪 デバッグ版</div>
   
-  <header class="head"><div class="appVersion">ver.6.2.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
+  <header class="head"><div class="appVersion">ver.6.3.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
 
   <section class="status">
     <div class="stat"><div class="label">🎫 ガチャ可能回数</div><div class="value" id="tickets">0枚</div></div>
@@ -595,7 +602,7 @@ function ceilingForNextDraw(g){
 }
 
 async function doDraw(type,count){
-  closeModal();
+  closeModal();gachaWaitScene(type);
   try{
     const result=await runTransaction(db,async tx=>{
       const snap=await readTx(tx);
@@ -668,43 +675,41 @@ async function doDraw(type,count){
 
 const RO=["N","R","SR","SSR","UR"];
 function stageHtml(x,cap){
-  const cls=x.rarity.toLowerCase(),shk=cls==="ur"?1.8:1.0,capCls=cap||(cls==="ur"?"cap-ur":["cap-red","cap-blue","cap-yel"][Math.floor(Math.random()*3)]),rv=(.5+shk+.1).toFixed(2),n={sr:10,ssr:22,ur:40}[cls]||0,cols=["#ffd54a","#ff6b6b","#4dc3ff","#7be495","#c792ea"];
+  const cls=x.rarity.toLowerCase(),dr=.35,shk=cls==="ur"?1.8:cls==="ssr"?.55:0,capCls=cap||(cls==="ur"?"cap-ur":["cap-red","cap-blue","cap-yel"][Math.floor(Math.random()*3)]),rv=(dr+shk+.08).toFixed(2),n={sr:10,ssr:22,ur:40}[cls]||0,cols=["#ffd54a","#ff6b6b","#4dc3ff","#7be495","#c792ea"];
   let cf="";for(let k=0;k<n;k++){const a=Math.random()*6.283,d=70+Math.random()*90;cf+=`<i class="cf" style="--x:${Math.round(Math.cos(a)*d*1.3)}px;--y:${Math.round(Math.sin(a)*d)}px;--c:${cols[k%5]};--d:${rv}s"></i>`}
-  return `<div class="gStage ${cls} ${capCls}" style="--shk:${shk}s;--rv:${rv}s"><div class="capsule"></div><div class="gFlash"></div>${cf}<div class="gRes"><div class="rarity ${cls}">${escapeHtml(x.rarity)}</div><div class="reward">${escapeHtml(x.reward)}</div>${x.ceiling?'<div class="gTag">🎯 天井到達！</div>':""}</div></div>`;
+  return `<div class="gStage ${cls} ${capCls}" style="--dr:${dr}s;--shk:${shk}s;--rv:${rv}s"><div class="capsule"></div><div class="gFlash"></div>${cf}<div class="gRes"><div class="rarity ${cls}">${escapeHtml(x.rarity)}</div><div class="reward">${escapeHtml(x.reward)}</div>${x.ceiling?'<div class="gTag">🎯 天井到達！</div>':""}</div></div>`;
 }
-/* 排出演出①: ガチャガチャからカプセルが出てくる → ②: 1個ずつ開封（revealResults） */
+/* 排出演出①: ガラガラ…とカプセルが流れ出る → ②: 自動で1個目から開封（revealResults） */
+function gachaWaitScene(type){   // 引くボタンを押した瞬間に表示（結果を待つ間もハンドルが回り続ける）
+  const dome=[[16,50,"#e0453a"],[60,38,"#3b7be0"],[88,60,"#f2b01e"],[36,82,"#3b7be0"],[82,86,"#e0453a"],[8,84,"#f2b01e"],[56,64,"#e0453a"]].map(a=>`<i style="left:${a[0]}px;top:${a[1]}px;--c:${a[2]}"></i>`).join("");
+  openModal(`<div class="gmScene ${type==="blue"?"blue":""}" id="gmScene"><div class="gmMachine run" id="gmMachine"><div class="gmDome">${dome}</div><div class="gmBody"><div class="gmKnob"></div><div class="gmSlot" id="gmSlot"></div></div></div><div class="gmMsg" id="gmMsg">ガラガラ…</div></div>`);
+}
 function showResults(rs,i=0,type="red"){
   if(!Array.isArray(rs)||!rs.length){closeModal();return}
   const caps=rs.map(x=>x.rarity==="UR"?"cap-ur":["cap-red","cap-blue","cap-yel"][Math.floor(Math.random()*3)]);
   dispenseScene(rs,caps,type);
 }
 function dispenseScene(rs,caps,type){
-  const n=rs.length,sz=n===1?64:38,cols=n===1?1:6,gap=n>6?340:460,rows=Math.ceil(n/cols);
-  const dome=[[16,50,"#e0453a"],[60,38,"#3b7be0"],[88,60,"#f2b01e"],[36,82,"#3b7be0"],[82,86,"#e0453a"],[8,84,"#f2b01e"],[56,64,"#e0453a"]].map(a=>`<i style="left:${a[0]}px;top:${a[1]}px;--c:${a[2]}"></i>`).join("");
-  openModal(`<div class="gmScene ${type==="blue"?"blue":""}" id="gmScene"><div class="gmMachine run" id="gmMachine"><div class="gmDome">${dome}</div><div class="gmBody"><div class="gmKnob"></div><div class="gmSlot" id="gmSlot"></div></div></div><div class="gmTray" id="gmTray" style="--sz:${sz}px;--cols:${cols};min-height:${rows*(sz+8)}px"></div></div><button class="singleBtn" id="gmGo" disabled>カプセルが出てくるよ…</button><button class="skipAll" id="gmSkip">スキップ</button>`);
-  const tray=document.getElementById("gmTray"),slot=document.getElementById("gmSlot"),mach=document.getElementById("gmMachine"),go=document.getElementById("gmGo");
-  let done=false;const timers=[];
-  const add=(k,instant)=>{
-    if(!tray.isConnected)return;
-    const c=document.createElement("div");c.className="miniCap "+caps[k];tray.appendChild(c);
-    if(!instant){
-      const r=c.getBoundingClientRect(),m=slot.getBoundingClientRect();
-      c.style.setProperty("--dx",(m.left+m.width/2-r.left-r.width/2)+"px");c.style.setProperty("--dy",(m.top+m.height/2-r.top-r.height/2)+"px");
-      c.classList.add("out");
-      if(caps[k]==="cap-ur")try{navigator.vibrate&&navigator.vibrate([40,30,90])}catch{}
-    }
+  if(!document.getElementById("gmScene"))gachaWaitScene(type);
+  const sc=document.getElementById("gmScene"),slot=document.getElementById("gmSlot"),mach=document.getElementById("gmMachine");
+  const n=rs.length,gap=n>1?110:0,sz=n===1?64:44,t0=250;let done=false;const timers=[];
+  const go=()=>{if(done)return;done=true;timers.forEach(clearTimeout);revealResults(rs,0,caps)};
+  mach.classList.add("run");
+  const spawn=k=>{
+    if(done||!sc.isConnected)return;
+    const s=sc.getBoundingClientRect(),m=slot.getBoundingClientRect(),c=document.createElement("div");
+    const dx=(Math.random()<.5?-1:1)*(50+Math.random()*90);
+    c.className="flowCap "+caps[k];
+    c.style.left=(m.left+m.width/2-s.left-sz/2)+"px";c.style.top=(m.top-s.top+2)+"px";
+    c.style.setProperty("--sz",sz+"px");c.style.setProperty("--dx",dx+"px");c.style.setProperty("--rot",Math.round(dx*3)+"deg");
+    c.style.setProperty("--h",Math.max(60,s.height-(m.top-s.top)-sz-12)+"px");
+    sc.appendChild(c);timers.push(setTimeout(()=>c.remove(),1400));
+    if(caps[k]==="cap-ur")try{navigator.vibrate&&navigator.vibrate([40,30,90])}catch{}
   };
-  const finish=()=>{
-    if(done)return;done=true;timers.forEach(clearTimeout);
-    while(tray.children.length<n)add(tray.children.length,true);
-    mach.classList.remove("run");go.disabled=false;go.textContent="カプセルを開ける ▶";
-    const sk=document.getElementById("gmSkip");if(sk)sk.style.display="none";
-  };
-  for(let k=0;k<n;k++)timers.push(setTimeout(()=>{if(!done)add(k)},700+k*gap));
-  timers.push(setTimeout(finish,700+(n-1)*gap+900));
-  document.getElementById("gmScene").onclick=finish;document.getElementById("gmSkip").onclick=finish;
-  go.onclick=()=>revealResults(rs,0,caps);
-  if(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)finish();
+  for(let k=0;k<n;k++)timers.push(setTimeout(()=>spawn(k),t0+k*gap));
+  timers.push(setTimeout(go,t0+(n-1)*gap+850));
+  sc.onclick=go;
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)go();
 }
 function revealResults(rs,i=0,caps){
   if(!Array.isArray(rs)||!rs.length){closeModal();return}
@@ -724,7 +729,7 @@ function revealResults(rs,i=0,caps){
     document.getElementById("nextDrawResult").onclick=()=>revealResults(rs,i+1,caps);
     const sk=document.getElementById("skipAll");if(sk)sk.onclick=()=>revealResults(rs,11,caps);
   }
-  if(cls==="ssr"||cls==="ur")setTimeout(()=>{try{if(st.isConnected&&navigator.vibrate)navigator.vibrate([60,40,140])}catch{}},(cls==="ur"?2.6:2.2)*1000);
+  if(cls==="ssr"||cls==="ur")setTimeout(()=>{try{if(st.isConnected&&navigator.vibrate)navigator.vibrate([60,40,140])}catch{}},(cls==="ur"?2.4:.9)*1000);
 }
 
 document.getElementById("red1").onclick=()=>requestGachaAccess("red",1);
