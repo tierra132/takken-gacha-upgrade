@@ -177,13 +177,34 @@ body:not(.owner) .gear,body:not(.owner) #adminBtn{display:none!important}
 .ahDet{margin-top:10px}.ahDet summary{font-weight:800;color:#2f6fed;padding:8px 0}
 .ahForm{display:flex;gap:8px;margin-top:6px}.ahForm.col{flex-direction:column}.ahForm input{flex:1;padding:12px;border:1px solid var(--line);border-radius:10px;font-size:15px;min-width:0}
 .ahForm button:not(.ahMain){border:0;border-radius:10px;padding:0 16px;background:#2f6fed;color:#fff;font-weight:800}
+
+/* v46: ガチャガチャ排出演出（カプセルが出てくる場面） */
+.gmScene{--mc1:#ff5a4d;--mc2:#b01e33;background:radial-gradient(circle at 50% 30%,#fff,#eef1f6 75%);border-radius:18px;padding:16px 10px 14px;margin-bottom:8px;cursor:pointer;overflow:hidden}
+.gmScene.blue{--mc1:#4a9bff;--mc2:#1f4fb8}
+.gmMachine{width:150px;margin:0 auto;position:relative}
+.gmDome{width:140px;height:128px;margin:0 auto;border-radius:70px 70px 24px 24px;background:radial-gradient(circle at 32% 25%,#fff 0,#ffffffaa 12%,#dbe9ff66 45%,#bcd4ff88 100%);border:3px solid #c9d6ee;position:relative;overflow:hidden}
+.gmDome i{position:absolute;width:36px;height:36px;border-radius:50%;background:linear-gradient(180deg,var(--c) 0 50%,#fff 50% 100%);box-shadow:inset -5px -5px 0 #0002;animation:domeBob 1.6s ease-in-out infinite}
+.gmDome i:nth-child(2n){animation-delay:-.6s}.gmDome i:nth-child(3n){animation-delay:-1.1s}
+.gmBody{height:70px;margin-top:-8px;border-radius:20px 20px 14px 14px;background:linear-gradient(180deg,var(--mc1),var(--mc2));box-shadow:0 8px 16px #0003;position:relative}
+.gmKnob{position:absolute;left:50%;top:10px;margin-left:-19px;width:38px;height:38px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#b8bec8 60%,#8c93a0);border:2px solid #0002}
+.gmKnob:after{content:"";position:absolute;left:6px;right:6px;top:50%;height:6px;margin-top:-3px;border-radius:3px;background:#5d6470}
+.gmSlot{position:absolute;left:50%;bottom:-2px;margin-left:-24px;width:48px;height:20px;border-radius:10px 10px 4px 4px;background:#2a1418;box-shadow:inset 0 4px 6px #000a}
+.gmMachine.run{animation:mShake .5s ease-in-out infinite}.gmMachine.run .gmKnob{animation:knobSpin 1.2s linear infinite}
+@keyframes knobSpin{to{transform:rotate(360deg)}}@keyframes mShake{25%{transform:translateX(-2px) rotate(-.6deg)}75%{transform:translateX(2px) rotate(.6deg)}}@keyframes domeBob{50%{transform:translateY(-8px) rotate(14deg)}}
+.gmTray{display:grid;grid-template-columns:repeat(var(--cols),var(--sz));justify-content:center;gap:8px;margin-top:16px}
+.miniCap{width:var(--sz);height:var(--sz);border-radius:50%;background:linear-gradient(180deg,var(--cc) 0 50%,#fff 50% 100%);box-shadow:inset -5px -5px 0 #0002,0 4px 8px #0003;position:relative}
+.miniCap:after{content:"";position:absolute;left:18%;top:14%;width:26%;height:15%;border-radius:50%;background:#fff9;transform:rotate(-30deg)}
+.miniCap.cap-red{--cc:#e0453a}.miniCap.cap-blue{--cc:#3b7be0}.miniCap.cap-yel{--cc:#f2b01e}
+.miniCap.cap-ur{background:linear-gradient(180deg,transparent 0 50%,#20203a 50% 100%),conic-gradient(from 0deg,#ff4d6d,#ffd54a,#4dff9a,#4dc3ff,#c792ea,#ff4d6d);box-shadow:0 0 18px #ffd54a,0 0 34px #ff4d6d88,inset -5px -5px 0 #0002;animation:cHue 1.1s linear infinite}
+.miniCap.out{animation:cOut .7s cubic-bezier(.3,1.3,.5,1) both}.miniCap.cap-ur.out{animation:cOut .7s cubic-bezier(.3,1.3,.5,1) both,cHue 1.1s linear infinite}
+@keyframes cOut{0%{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}15%{opacity:1}60%{transform:translate(calc(var(--dx)*.15),10px) scale(1.1)}80%{transform:translateY(-6px)}100%{transform:none}}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="debugBanner">🧪 デバッグ版</div>
   
-  <header class="head"><div class="appVersion">ver.6.1.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
+  <header class="head"><div class="appVersion">ver.6.2.0-dev</div><h1>宅建がちゃ</h1><p>30分勉強して、がちゃ回数券を1枚。</p><p id="cloudStatus" style="margin-top:6px;font-size:11px">☁️ Firebase接続準備中…</p></header>
 
   <section class="status">
     <div class="stat"><div class="label">🎫 ガチャ可能回数</div><div class="value" id="tickets">0枚</div></div>
@@ -628,7 +649,7 @@ async function doDraw(type,count){
     cloudReady=true;
     cacheLocal();
     render();
-    showResults(result.results,0);
+    showResults(result.results,0,type);
   }catch(err){
     console.error(err);
     if(err.message==="GACHA_CLOSED"){
@@ -646,12 +667,46 @@ async function doDraw(type,count){
 }
 
 const RO=["N","R","SR","SSR","UR"];
-function stageHtml(x){
-  const cls=x.rarity.toLowerCase(),shk=cls==="ur"?1.8:1.0,capCls=cls==="ur"?"cap-ur":["cap-red","cap-blue","cap-yel"][Math.floor(Math.random()*3)],rv=(.5+shk+.1).toFixed(2),n={sr:10,ssr:22,ur:40}[cls]||0,cols=["#ffd54a","#ff6b6b","#4dc3ff","#7be495","#c792ea"];
+function stageHtml(x,cap){
+  const cls=x.rarity.toLowerCase(),shk=cls==="ur"?1.8:1.0,capCls=cap||(cls==="ur"?"cap-ur":["cap-red","cap-blue","cap-yel"][Math.floor(Math.random()*3)]),rv=(.5+shk+.1).toFixed(2),n={sr:10,ssr:22,ur:40}[cls]||0,cols=["#ffd54a","#ff6b6b","#4dc3ff","#7be495","#c792ea"];
   let cf="";for(let k=0;k<n;k++){const a=Math.random()*6.283,d=70+Math.random()*90;cf+=`<i class="cf" style="--x:${Math.round(Math.cos(a)*d*1.3)}px;--y:${Math.round(Math.sin(a)*d)}px;--c:${cols[k%5]};--d:${rv}s"></i>`}
   return `<div class="gStage ${cls} ${capCls}" style="--shk:${shk}s;--rv:${rv}s"><div class="capsule"></div><div class="gFlash"></div>${cf}<div class="gRes"><div class="rarity ${cls}">${escapeHtml(x.rarity)}</div><div class="reward">${escapeHtml(x.reward)}</div>${x.ceiling?'<div class="gTag">🎯 天井到達！</div>':""}</div></div>`;
 }
-function showResults(rs,i=0){
+/* 排出演出①: ガチャガチャからカプセルが出てくる → ②: 1個ずつ開封（revealResults） */
+function showResults(rs,i=0,type="red"){
+  if(!Array.isArray(rs)||!rs.length){closeModal();return}
+  const caps=rs.map(x=>x.rarity==="UR"?"cap-ur":["cap-red","cap-blue","cap-yel"][Math.floor(Math.random()*3)]);
+  dispenseScene(rs,caps,type);
+}
+function dispenseScene(rs,caps,type){
+  const n=rs.length,sz=n===1?64:38,cols=n===1?1:6,gap=n>6?340:460,rows=Math.ceil(n/cols);
+  const dome=[[16,50,"#e0453a"],[60,38,"#3b7be0"],[88,60,"#f2b01e"],[36,82,"#3b7be0"],[82,86,"#e0453a"],[8,84,"#f2b01e"],[56,64,"#e0453a"]].map(a=>`<i style="left:${a[0]}px;top:${a[1]}px;--c:${a[2]}"></i>`).join("");
+  openModal(`<div class="gmScene ${type==="blue"?"blue":""}" id="gmScene"><div class="gmMachine run" id="gmMachine"><div class="gmDome">${dome}</div><div class="gmBody"><div class="gmKnob"></div><div class="gmSlot" id="gmSlot"></div></div></div><div class="gmTray" id="gmTray" style="--sz:${sz}px;--cols:${cols};min-height:${rows*(sz+8)}px"></div></div><button class="singleBtn" id="gmGo" disabled>カプセルが出てくるよ…</button><button class="skipAll" id="gmSkip">スキップ</button>`);
+  const tray=document.getElementById("gmTray"),slot=document.getElementById("gmSlot"),mach=document.getElementById("gmMachine"),go=document.getElementById("gmGo");
+  let done=false;const timers=[];
+  const add=(k,instant)=>{
+    if(!tray.isConnected)return;
+    const c=document.createElement("div");c.className="miniCap "+caps[k];tray.appendChild(c);
+    if(!instant){
+      const r=c.getBoundingClientRect(),m=slot.getBoundingClientRect();
+      c.style.setProperty("--dx",(m.left+m.width/2-r.left-r.width/2)+"px");c.style.setProperty("--dy",(m.top+m.height/2-r.top-r.height/2)+"px");
+      c.classList.add("out");
+      if(caps[k]==="cap-ur")try{navigator.vibrate&&navigator.vibrate([40,30,90])}catch{}
+    }
+  };
+  const finish=()=>{
+    if(done)return;done=true;timers.forEach(clearTimeout);
+    while(tray.children.length<n)add(tray.children.length,true);
+    mach.classList.remove("run");go.disabled=false;go.textContent="カプセルを開ける ▶";
+    const sk=document.getElementById("gmSkip");if(sk)sk.style.display="none";
+  };
+  for(let k=0;k<n;k++)timers.push(setTimeout(()=>{if(!done)add(k)},700+k*gap));
+  timers.push(setTimeout(finish,700+(n-1)*gap+900));
+  document.getElementById("gmScene").onclick=finish;document.getElementById("gmSkip").onclick=finish;
+  go.onclick=()=>revealResults(rs,0,caps);
+  if(window.matchMedia&&matchMedia("(prefers-reduced-motion:reduce)").matches)finish();
+}
+function revealResults(rs,i=0,caps){
   if(!Array.isArray(rs)||!rs.length){closeModal();return}
   const multi=rs.length===11;
   if(i>=rs.length){
@@ -662,12 +717,12 @@ function showResults(rs,i=0){
     return;
   }
   const x=rs[i],cls=x.rarity.toLowerCase(),last=i===rs.length-1;
-  openModal((multi?`<div class="resultNo">${i+1} / 11回目${i===10?"（ボーナス）":""}</div>`:"")+stageHtml(x)+(multi?`<button class="singleBtn" id="nextDrawResult">${last?"結果一覧を見る":"次へ"}</button>${last?"":'<button class="skipAll" id="skipAll">結果一覧へスキップ</button>'}`:'<button class="singleBtn" id="modalCloseBtn">OK</button>'));
+  openModal((multi?`<div class="resultNo">${i+1} / 11回目${i===10?"（ボーナス）":""}</div>`:"")+stageHtml(x,caps&&caps[i])+(multi?`<button class="singleBtn" id="nextDrawResult">${last?"結果一覧を見る":"次へ"}</button>${last?"":'<button class="skipAll" id="skipAll">結果一覧へスキップ</button>'}`:'<button class="singleBtn" id="modalCloseBtn">OK</button>'));
   const st=document.querySelector(".gStage");
   st.onclick=()=>st.classList.add("done");
   if(multi){
-    document.getElementById("nextDrawResult").onclick=()=>showResults(rs,i+1);
-    const sk=document.getElementById("skipAll");if(sk)sk.onclick=()=>showResults(rs,11);
+    document.getElementById("nextDrawResult").onclick=()=>revealResults(rs,i+1,caps);
+    const sk=document.getElementById("skipAll");if(sk)sk.onclick=()=>revealResults(rs,11,caps);
   }
   if(cls==="ssr"||cls==="ur")setTimeout(()=>{try{if(st.isConnected&&navigator.vibrate)navigator.vibrate([60,40,140])}catch{}},(cls==="ur"?2.6:2.2)*1000);
 }
