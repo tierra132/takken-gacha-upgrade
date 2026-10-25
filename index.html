@@ -321,7 +321,7 @@ const defaults={tickets:0,todayStudy:0,totalStudy:0,lastStudyDate:"",history:[],
 const PALETTE=["#3975c8","#c93434","#d59b18","#2e9d6b","#7953a6","#e07a3a","#16a3b8","#8b9198"];
 const DEFAULT_CATS=["宅建業法","権利関係","法令上の制限","税・その他","過去問演習","模試"].map((n,i)=>({id:"c"+(i+1),name:n,color:PALETTE[i]}));
 Object.assign(defaults,{categories:structuredClone(DEFAULT_CATS),studyDays:{},studyLog:[],carryMin:0,goalDaily:60,goalWeekly:420,missionCfg:{t1:1,t2:1,t3:2,tb:2,bonusReward:"",bonusRarity:"SR"},missionClaims:{},presets:[]});
-Object.assign(defaults,{energy:6,gm:{basic:0,rare:0,boss:0},gear:{},eq:{},lv:{},star:{},run:null,dg:{best:0,clears:0}});
+Object.assign(defaults,{energy:6,gm:{basic:0,rare:0,boss:0},gear:{},eq:{},lv:{},star:{},run:null,dg:{best:0,clears:0},dgCfg:{}});
 const rowObj=a=>({rarity:a[0],reward:a[1],probability:a[2],materialId:a[3],materialQty:a[4]});
 const DK=/^\d{4}-\d{2}-\d{2}$/;
 function normalizeState(s){
@@ -1101,7 +1101,7 @@ const INITIAL_ACCOUNT={id:"takken",password:"takken1234",name:"メイン"};    /
 const ADMIN_EMAIL="admin@takken-gacha.app",MAIL_DOMAIN="takken-gacha.app",PREVIEW_ID="admin-preview",RESERVED=["admin",PREVIEW_ID];
 const DATA_COLLECTIONS={shared:"devShared",user:"devData",ids:"devIds",legacy:"devState"};   // 本番では legacy を "state" に
 const SHARED_REF=doc(db,DATA_COLLECTIONS.shared,"main");
-const SH_KEYS=["tables","gachas","materials","exchangeShop","examDate","resetTime","missionCfg","presets","gachaPassword"];
+const SH_KEYS=["tables","gachas","materials","exchangeShop","examDate","resetTime","missionCfg","presets","gachaPassword","dgCfg"];
 const auth=getAuth(app),authGate=document.getElementById("authGate"),lcs=s=>String(s||"").toLowerCase(),$v=id=>document.getElementById(id).value;
 let me=null,isOwner=false,authStarted=false,regBusy=false,pendingMsg="",ACTIVE_ID="",ACTIVE_NAME="";
 const userRef=()=>doc(db,DATA_COLLECTIONS.user,ACTIVE_ID),userRefFor=id=>doc(db,DATA_COLLECTIONS.user,id),idRef=id=>doc(db,DATA_COLLECTIONS.ids,id);
@@ -1243,8 +1243,8 @@ document.getElementById("admin").addEventListener("click",e=>{const b=e.target.c
 
 /* ===== ダンジョン機能 v1（企画仕様案 v1 準拠）===== */
 const DG={cost:2,hp:40,atk:6,def:2,pot:4,potHeal:.4,skMul:1.8,skCd:3,floors:5,
-  lvMax:5,lvPer:.12,lvCost:l=>5+5*l,starMax:2,starPer:.25,starBoss:[3,6],starRare:[2,4],
-  drop:f=>1+Math.ceil(f/2),bossDrop:2,firstClear:3,reach:f=>3*f,chest:f=>f<=2?{basic:6}:{rare:1}};
+  lvMax:5,lvPer:.12,lvBase:5,lvStep:5,dropMul:1,esc:.25,lvCost:l=>DG.lvBase+DG.lvStep*l,starMax:2,starPer:.25,starBoss:[3,6],starRare:[2,4],
+  drop:f=>Math.max(1,Math.round((1+Math.ceil(f/2))*DG.dropMul)),bossDrop:2,firstClear:3,reach:f=>3*f,chest:f=>f<=2?{basic:6}:{rare:1}};
 // id,名前,レア,部位,攻,防,HP,スキル威力,反撃,毎ターン回復,回復薬強化
 const GEAR=[["w0","木の剣","N","w",3,0,0,0,0,0,0],["w1","鉄の剣","R","w",5,0,0,0,0,0,0],["w2","烈火の剣","SR","w",6,0,0,.5,0,0,0],["w3","竜牙の大剣","SSR","w",8,0,0,.6,0,0,0],["w4","神剣アマツ","UR","w",10,0,0,.9,0,0,0],
   ["a0","布の服","N","a",0,1,5,0,0,0,0],["a1","革の鎧","R","a",0,2,10,0,0,0,0],["a2","反撃の盾","SR","a",0,3,10,0,.6,0,0],["a3","聖騎士の鎧","SSR","a",0,5,20,0,.8,0,0],["a4","不動の鎧","UR","a",0,7,30,0,1,0,0],
@@ -1290,7 +1290,7 @@ function genFloor(seed,f){const r=dgRng(seed+f*7919),c=Array(25).fill(".");c[24]
 
 /* --- 画面 --- */
 let run=null,bt=null,dgMsg="",dgSaving=Promise.resolve();
-(function(){const st=document.createElement("style");st.textContent=`#dgCard{margin-top:12px}body:not(.pg-home) #dgCard{display:none!important}
+(function(){const st=document.createElement("style");st.textContent=`#dgCard{margin-top:12px}.aTabs{grid-template-columns:repeat(auto-fit,minmax(62px,1fr))!important}body:not(.pg-home) #dgCard{display:none!important}
 .dgRow{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .dgBtn{border:0;border-radius:14px;padding:12px 14px;font-weight:800;font-size:14px;background:#2f6fed;color:#fff;flex:1}
 .dgBtn.sub{background:#e3eafb;color:#1d3a8a}.dgBtn.red{background:#d14a4a}.dgBtn:disabled{opacity:.4}
@@ -1310,7 +1310,7 @@ function dgRender(){const el=$d("dgCard");if(!el||!state||!state.gm)return;const
   el.innerHTML=`<div class="dgRow"><b style="font-size:16px">⚔ ダンジョン</b><b>⚡ ${e}</b></div><div style="font-size:12px;color:#5b6577;margin:6px 0">勉強30分で⚡1。探索は⚡${DG.cost}。${!state.run&&e<DG.cost?`あと⚡${DG.cost-e}で探索できます。`:""}</div><div style="font-size:12px;margin-bottom:10px">基本素材 ${g.basic}／希少素材 ${g.rare}／ボス素材 ${g.boss}</div><div class="dgRow"><button class="dgBtn" id="dgGo" ${!state.run&&e<DG.cost?"disabled":""}>${state.run?"探索を再開":`探索に出る（⚡${DG.cost}）`}</button><button class="dgBtn sub" id="dgGear">装備・強化</button></div>`;
   $d("dgGo").onclick=dgEnter;$d("dgGear").onclick=gearView;
   const rc=$d("redComment"),bc=$d("blueComment");if(rc)rc.textContent="⚔ 装備が出る（重複は素材に変換）";if(bc)bc.textContent="🧩 強化素材が出る";}
-const _render=render;render=function(){_render();dgRender()};
+const _render=render;render=function(){dgApply();_render();dgRender()};
 
 function saveRun(reach){if(!run)return dgSaving;const r=clone(run);if(bt){r.hp=bt.h0;r.pot=bt.p0}
   dgSaving=dgSaving.then(()=>updateCloud(s=>{dgEns(s);s.run=r;if(reach&&reach>s.dg.best){s.dg.best=reach;s.gm.basic+=DG.reach(reach)}return s})).catch(console.error);return dgSaving}
@@ -1335,7 +1335,7 @@ function dgMove(i){const c=run.cells[i];if(c==="0"||c==="1"||c==="2"||c==="B"){d
   else dgMsg="";
   mapView()}
 
-function dgBattle(i,code){const d=EN[code],sc=code==="B"?1:1+.25*(run.f-1),mx=Math.round(d.hp*sc);
+function dgBattle(i,code){const d=EN[code],sc=code==="B"?1:1+DG.esc*(run.f-1),mx=Math.round(d.hp*sc);
   bt={i,code,n:d.n,ic:d.ic,max:mx,hp:mx,atk:Math.round(d.atk*sc),cyc:d.c,c2:d.c2,k:0,p2:false,cd:0,h0:run.hp,p0:run.pot,log:`${d.n}が現れた！`};btView()}
 function btView(){const st=pstat(state),e=bt,cur=e.cyc[e.k],dm=Math.max(1,Math.round(e.atk*cur[1]-st.def));
   const it=cur[2]==="g"?`🛡 予告：${cur[0]}<br>→ スキルなら貫通できる`:cur[1]>0?`⚠ 予告：${cur[0]}<br>→ 約${dm}ダメージ（防御すれば約${Math.max(1,Math.round(dm*.4))}）`:cur[2]==="h"?`💚 予告：${cur[0]}<br>→ 回復される前に倒そう`:`… 予告：${cur[0]}`;
@@ -1380,6 +1380,30 @@ function gearView(){const s=state,g=s.gm||{basic:0,rare:0,boss:0},lock=!!s.run;
     if(a==="en")dgDo(t=>{const l=t.lv[id]||0,c=DG.lvCost(l);if(l>=DG.lvMax||t.gm.basic<c)throw new Error("X");t.gm.basic-=c;t.lv[id]=l+1});
     if(a==="ev")dgDo(t=>{const r=t.star[id]||0;if(r>=DG.starMax||t.gm.boss<DG.starBoss[r]||t.gm.rare<DG.starRare[r])throw new Error("X");t.gm.boss-=DG.starBoss[r];t.gm.rare-=DG.starRare[r];t.star[id]=r+1})}}
 
+
+/* --- アプリ内バランス調整（管理者：管理画面「ダンジョン」タブ。共通設定として全員に反映）--- */
+const DGF=[["cost","探索に必要な⚡"],["hp","基本HP"],["atk","基本攻撃"],["def","基本防御"],["pot","回復薬の数"],["potHeal","回復薬の回復割合（0.4＝40%）"],["skMul","スキル倍率"],["skCd","スキルの間隔（ターン）"],["esc","階ごとの敵強化（0.25＝25%）"],["dropMul","基本素材ドロップ倍率"],["bossDrop","ボス素材／撃破"],["firstClear","初回撃破ボーナス（ボス素材）"],["lvMax","強化の最大Lv"],["lvPer","Lvごとの強化率（0.12＝12%）"],["lvBase","強化コスト：基礎"],["lvStep","強化コスト：Lvごとの増加"],["starPer","★ごとの強化率（0.25＝25%）"],["sb0","★1：ボス素材"],["sr0","★1：希少素材"],["sb1","★2：ボス素材"],["sr1","★2：希少素材"]];
+const DGG=[["atk","攻撃"],["def","防御"],["hp","HP"],["sk","スキル威力（0.5＝+50%）"],["ct","反撃率（1＝攻撃と同値）"],["rg","毎ターン回復"],["pot","回復薬強化（0.3＝+30%）"]];
+const DGB=Object.assign(Object.fromEntries(DGF.filter(f=>!/^s[br]/.test(f[0])).map(f=>[f[0],DG[f[0]]])),{sb0:DG.starBoss[0],sb1:DG.starBoss[1],sr0:DG.starRare[0],sr1:DG.starRare[1]});
+const ENB=Object.fromEntries(Object.keys(EN).map(k=>[k,{hp:EN[k].hp,atk:EN[k].atk}])),GEB=Object.fromEntries(GEAR.map(g=>[g.id,Object.fromEntries(DGG.map(f=>[f[0],g[f[0]]]))]));
+const dgPick=(o,k,b)=>o&&o[k]!==undefined&&Number.isFinite(+o[k])&&+o[k]>=0?+o[k]:b;
+function dgApply(){const c=state&&state.dgCfg||{};
+  for(const k in DGB)DG[k]=dgPick(c.d,k,DGB[k]);
+  DG.starBoss=[DG.sb0,DG.sb1];DG.starRare=[DG.sr0,DG.sr1];
+  DG.cost=Math.max(1,Math.round(DG.cost));DG.hp=Math.max(1,DG.hp);DG.skCd=Math.max(1,Math.round(DG.skCd));DG.lvMax=Math.max(1,Math.round(DG.lvMax));DG.pot=Math.round(DG.pot);
+  for(const k in ENB){EN[k].hp=Math.max(1,dgPick((c.e||{})[k],"hp",ENB[k].hp));EN[k].atk=dgPick((c.e||{})[k],"atk",ENB[k].atk)}
+  for(const g of GEAR)for(const[k]of DGG)g[k]=dgPick((c.g||{})[g.id],k,GEB[g.id][k])}
+function dgAdminHtml(){const inp=(id,l,v)=>`<div><label>${l}</label><input id="${id}" type="number" step="any" min="0" value="${v}"></div>`;
+  return `<div class="aPane" data-p="dg" id="dgPane"><span class="paneTag all">🌐 全アカウント共通</span><div class="note">ここで変えた数値は保存するとすぐ全員のダンジョンに反映されます。探索中の人は次の戦闘から変わります。</div><div class="sectionTitle">⚔ 全体バランス</div><div class="adminGrid">${DGF.map(f=>inp("dgf_"+f[0],f[1],DG[f[0]]===undefined?DGB[f[0]]:(f[0]==="sb0"?DG.starBoss[0]:f[0]==="sb1"?DG.starBoss[1]:f[0]==="sr0"?DG.starRare[0]:f[0]==="sr1"?DG.starRare[1]:DG[f[0]]))).join("")}</div><div class="sectionTitle">👺 敵</div>${Object.keys(EN).map(k=>`<div class="adminGrid"><b style="grid-column:1/-1">${EN[k].ic} ${EN[k].n}</b>${inp("dge_"+k+"_hp","HP",EN[k].hp)}${inp("dge_"+k+"_atk","攻撃",EN[k].atk)}</div>`).join("")}<div class="sectionTitle">🎒 装備（${GEAR.length}種）</div>${GEAR.map(g=>`<details style="margin:6px 0"><summary><b>${g.r}</b> ${g.name}</summary><div class="adminGrid">${DGG.map(f=>inp(`dgg_${g.id}_${f[0]}`,f[1],g[f[0]])).join("")}</div></details>`).join("")}<div class="adminGrid" style="margin-top:12px"><button class="smallbtn" data-dg="save">ダンジョン設定を保存</button><button class="smallbtn danger" data-dg="reset">初期値に戻す</button></div></div>`}
+const _sa2=showAdmin;showAdmin=function(){_sa2();if(!isOwner)return;const a=$d("admin"),t=a.querySelector("#aTabs");if(!t||$d("dgPane"))return;
+  t.insertAdjacentHTML("beforeend",'<button data-p="dg">⚔<br>ダンジョン</button>');const anc=a.querySelector(".adminMainActions"),p=dgAdminHtml();anc?anc.insertAdjacentHTML("beforebegin",p):a.insertAdjacentHTML("beforeend",p)};
+$d("admin").addEventListener("click",async e=>{const b=e.target.closest("[data-dg]");if(!b)return;
+  if(b.dataset.dg==="reset"){if(!confirm("ダンジョンの数値をすべて初期値に戻しますか？"))return;await updateCloud(s=>{s.dgCfg={};return s});b.textContent="✓ 戻しました";const o=$d("dgPane");if(o){const n=document.createElement("div");n.innerHTML=dgAdminHtml();o.replaceWith(n.firstChild);selTab("dg")}return}
+  const n=id=>{const v=parseFloat($d(id).value);return Number.isFinite(v)&&v>=0?v:null},cfg={d:{},e:{},g:{}};
+  for(const f of DGF){const v=n("dgf_"+f[0]);if(v!==null)cfg.d[f[0]]=v}
+  for(const k in EN){cfg.e[k]={};for(const x of["hp","atk"]){const v=n(`dge_${k}_${x}`);if(v!==null)cfg.e[k][x]=v}}
+  for(const g of GEAR){cfg.g[g.id]={};for(const f of DGG){const v=n(`dgg_${g.id}_${f[0]}`);if(v!==null)cfg.g[g.id][f[0]]=v}}
+  try{await updateCloud(s=>{s.dgCfg=cfg;return s});b.textContent="✓ 保存しました"}catch(x){b.textContent="保存できませんでした"}});
 </script>
 <div id="authGate" class="show"><div class="gBox"><p>読み込み中…</p></div></div>
 <script>
