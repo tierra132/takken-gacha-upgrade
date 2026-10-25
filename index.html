@@ -1290,7 +1290,7 @@ function genFloor(seed,f){const r=dgRng(seed+f*7919),c=Array(25).fill(".");c[24]
 
 /* --- 画面 --- */
 let run=null,bt=null,dgMsg="",dgSaving=Promise.resolve();
-(function(){const st=document.createElement("style");st.textContent=`#dgCard{margin-top:12px}.aTabs{grid-template-columns:repeat(auto-fit,minmax(62px,1fr))!important}body:not(.pg-home) #dgCard{display:none!important}
+(function(){const st=document.createElement("style");st.textContent=`#dgCard{margin-top:12px}.aTabs{grid-template-columns:repeat(auto-fit,minmax(62px,1fr))!important}body:not(.pg-dg) #dgCard{display:none!important}
 .dgRow{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 .dgBtn{border:0;border-radius:14px;padding:12px 14px;font-weight:800;font-size:14px;background:#2f6fed;color:#fff;flex:1}
 .dgBtn.sub{background:#e3eafb;color:#1d3a8a}.dgBtn.red{background:#d14a4a}.dgBtn:disabled{opacity:.4}
@@ -1301,13 +1301,25 @@ let run=null,bt=null,dgMsg="",dgSaving=Promise.resolve();
 .dgBar{height:12px;background:#dde3f0;border-radius:8px;overflow:hidden}.dgBar i{display:block;height:100%;background:linear-gradient(90deg,#34c38f,#4f86ff)}.dgBar.e i{background:linear-gradient(90deg,#ff9a7b,#d14a4a)}
 .dgIntent{background:#fff3cf;border-radius:12px;padding:10px;font-weight:800;margin:10px 0;line-height:1.5}
 .dgAct{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.dgLog{min-height:58px;font-size:13px;color:#46506a;margin:8px 0;white-space:pre-line}
-.dgG{background:#fff;border-radius:14px;padding:10px;margin:8px 0}.dgG.eq{outline:3px solid #2f6fed}.dgG small{color:#5b6577}.dgG .dgRow{margin-top:8px}.dgG .dgBtn{padding:8px;font-size:13px}`;
+.dgG{background:#fff;border-radius:14px;padding:10px;margin:8px 0}.dgG.eq{outline:3px solid #2f6fed}.dgG small{color:#5b6577}.dgG .dgRow{margin-top:8px}.dgG .dgBtn{padding:8px;font-size:13px}
+#rewSeg{display:none;gap:6px;margin:0 0 10px}body.pg-box #rewSeg,body.pg-ex #rewSeg{display:flex}#rewSeg button{flex:1;border:0;border-radius:12px;padding:10px;font-weight:800;background:#e3eafb;color:#1d3a8a}#rewSeg button.on{background:#2f6fed;color:#fff}
+.dgHero{background:linear-gradient(160deg,#3f78f2,#7aa8ff);color:#fff;border-radius:18px;padding:16px;text-align:center}.dgHT{font-weight:900;font-size:18px}.dgPips{display:flex;gap:4px;justify-content:center;margin:10px 0;flex-wrap:wrap}.dgPips i{font-style:normal;font-size:22px;opacity:.35;filter:grayscale(1)}.dgPips i.on{opacity:1;filter:none}
+.dgSub{font-size:12px;line-height:1.6}.dgHero .dgBtn{background:#fff;color:#1d3a8a;width:100%;margin-top:8px;font-size:16px}.dgHero .dgBtn:disabled{opacity:.6}
+.dgChips{display:flex;gap:6px;margin:12px 0 8px}.dgChips span{flex:1;background:#eef3ff;border-radius:12px;padding:8px 4px;text-align:center;font-size:12px}
+.dgBar i{transition:width .45s ease}.dgC.t0,.dgC.t1,.dgC.t2,.dgC.tB{background:#ffeceb}.dgC.tC{background:#fff4d6}.dgC.tS{background:#e2f6ff}.dgC.tN{background:#e3f7e8}.dgC.me{background:#ffe9a8}
+.dgStage{background:linear-gradient(180deg,#dfe9ff,#fff);border-radius:20px;padding:12px;box-shadow:0 6px 18px #1d3a8a14}.dgFoe{text-align:center}.dgNm{display:flex;justify-content:space-between;margin-bottom:4px}
+.dgSprite{position:relative;display:inline-block;font-size:76px;line-height:1.1;margin:8px 0;filter:drop-shadow(0 6px 4px #1d3a8a30)}.dgSprite.sm{font-size:34px;margin:0 10px 0 0}
+.dgSprite.hit{animation:dgHit .35s}@keyframes dgHit{20%{transform:translateX(-8px) rotate(-4deg)}50%{transform:translateX(8px) rotate(4deg)}80%{transform:translateX(-4px)}}
+.dgMe{display:flex;align-items:center;margin-top:6px}.dgPop{position:absolute;left:50%;top:0;transform:translateX(-50%);font-size:22px;font-weight:900;color:#d14a4a;text-shadow:0 2px 0 #fff,0 0 6px #fff;animation:dgUp .9s forwards;pointer-events:none}.dgPop.g{color:#1f9d6b}
+@keyframes dgUp{to{top:-34px;opacity:0}}@media(prefers-reduced-motion:reduce){.dgSprite.hit,.dgPop{animation:none}.dgBar i{transition:none}}`;
   document.head.appendChild(st);const ov=document.createElement("div");ov.id="dgOv";document.body.appendChild(ov)})();
 const dgOv=()=>$d("dgOv"),dgShow=h=>{dgOv().innerHTML=`<div class="dgW">${h}</div>`;dgOv().classList.add("on")},dgClose=()=>{dgOv().classList.remove("on");dgRender()};
 const bar=(a,b,c="")=>`<div class="dgBar ${c}"><i style="width:${Math.max(0,Math.min(100,a/b*100))}%"></i></div>`;
 
-function dgRender(){const el=$d("dgCard");if(!el||!state||!state.gm)return;const e=Math.floor(Number(state.energy)||0),g=state.gm;
-  el.innerHTML=`<div class="dgRow"><b style="font-size:16px">⚔ ダンジョン</b><b>⚡ ${e}</b></div><div style="font-size:12px;color:#5b6577;margin:6px 0">勉強30分で⚡1。探索は⚡${DG.cost}。${!state.run&&e<DG.cost?`あと⚡${DG.cost-e}で探索できます。`:""}</div><div style="font-size:12px;margin-bottom:10px">基本素材 ${g.basic}／希少素材 ${g.rare}／ボス素材 ${g.boss}</div><div class="dgRow"><button class="dgBtn" id="dgGo" ${!state.run&&e<DG.cost?"disabled":""}>${state.run?"探索を再開":`探索に出る（⚡${DG.cost}）`}</button><button class="dgBtn sub" id="dgGear">装備・強化</button></div>`;
+function dgRender(){const el=$d("dgCard");if(!el||!state||!state.gm)return;const e=Math.floor(Number(state.energy)||0),g=state.gm,d=state.dg||{},can=!!state.run||e>=DG.cost;
+  const pips=Array.from({length:Math.max(DG.cost,Math.min(e,10))},(_,i)=>`<i class="${i<e?"on":""}">⚡</i>`).join("");
+  const eq=["w","a","x"].map(sl=>{const id=dgEq(state,sl);return id?GM[id].name:"なし"}).join("／");
+  el.innerHTML=`<div class="dgHero"><div class="dgHT">⚔ ダンジョン</div><div class="dgPips">${pips}</div><div class="dgSub">${state.run?"探索の途中です。続きから再開できます。":e>=DG.cost?"準備OK！ 探索に出られます。":`あと⚡${DG.cost-e}で探索できます（勉強30分で⚡1）`}</div><button class="dgBtn" id="dgGo" ${can?"":"disabled"}>${state.run?"▶ 探索を再開":`🚪 探索に出る（⚡${DG.cost}）`}</button></div><div class="dgChips"><span>🪨 基本<br><b>${g.basic}</b></span><span>💎 希少<br><b>${g.rare}</b></span><span>👑 ボス<br><b>${g.boss}</b></span></div><div class="dgSub" style="color:#5b6577">装備：${eq}<br>最高到達 ${d.best||0}階／制覇 ${d.clears||0}回</div><button class="dgBtn sub" id="dgGear" style="width:100%;margin-top:10px">🎒 装備・強化</button>`;
   $d("dgGo").onclick=dgEnter;$d("dgGear").onclick=gearView;
   const rc=$d("redComment"),bc=$d("blueComment");if(rc)rc.textContent="⚔ 装備が出る（重複は素材に変換）";if(bc)bc.textContent="🧩 強化素材が出る";}
 const _render=render;render=function(){dgApply();_render();dgRender()};
@@ -1319,10 +1331,11 @@ document.addEventListener("visibilitychange",()=>{if(document.hidden&&run)saveRu
 async function dgEnter(){if(state.run){dgResume();return}
   try{await updateCloud(s=>{dgEns(s);if(s.run)throw new Error("RUN");if(s.energy<DG.cost)throw new Error("NRG");const st=pstat(s),seed=Math.floor(Math.random()*1e9);s.energy-=DG.cost;s.run={seed,f:1,pos:0,cells:genFloor(seed,1),hp:st.hp,mhp:st.hp,pot:DG.pot,bag:{basic:0,rare:0}};return s});dgResume()}
   catch(e){errModal("探索に出られません",e.message==="NRG"?"探索エネルギーが足りません。勉強を記録すると増えます。":"状態を更新してもう一度お試しください。")}}
-function dgResume(){run=clone(state.run);bt=null;dgMsg="探索を再開しました。";mapView()}
+function dgResume(){run=clone(state.run);bt=null;dgMsg="探索を再開しました。";dgIntro(mapView)}
+function dgIntro(next){try{if(localStorage.getItem("dgIntro")){next();return}}catch(e){next();return}dgShow(`<h2>あそびかた</h2><div class="dgG">🧍 光っているマスをタップして進みます<br>👺 敵は<b>予告</b>を見て行動：<br>　⚠強攻撃＝🛡防御　🛡構え＝✨スキル<br>📦宝箱 ⛲回復 🪜階段<br>🏆 5階のボスを倒すと素材が確定！<br><small>やられると未確定の素材は失います。中断はいつでもOKです。</small></div><button class="dgBtn" id="dgOk" style="width:100%">はじめる</button>`);$d("dgOk").onclick=()=>{try{localStorage.setItem("dgIntro","1")}catch(e){}next()}}
 
 function mapView(){const px=run.pos%5,py=Math.floor(run.pos/5),IC={"0":EN[0].ic,"1":EN[1].ic,"2":EN[2].ic,B:EN.B.ic,C:"📦",S:"⛲",">":"🪜"};
-  const cells=run.cells.map((c,i)=>{const me=i===run.pos,adj=Math.abs(i%5-px)+Math.abs(Math.floor(i/5)-py)===1;return `<button class="dgC ${me?"me":""} ${adj?"adj":""}" data-i="${i}" ${adj?"":"disabled"}>${me?"🧍":IC[c]||""}</button>`}).join("");
+  const cells=run.cells.map((c,i)=>{const me=i===run.pos,adj=Math.abs(i%5-px)+Math.abs(Math.floor(i/5)-py)===1;return `<button class="dgC ${me?"me":""} ${adj?"adj":""} t${c===">"?"N":c}" data-i="${i}" ${adj?"":"disabled"}>${me?"🧍":IC[c]||""}</button>`}).join("");
   dgShow(`<div class="dgRow"><b>${run.f}階 / ${DG.floors}階</b><span>💊×${run.pot}</span></div><div style="font-size:12px;margin:6px 0 4px">HP ${run.hp}/${run.mhp}</div>${bar(run.hp,run.mhp)}<div class="dgGrid">${cells}</div><div style="font-size:12px">未確定の素材：基本 ${run.bag.basic}／希少 ${run.bag.rare}（ボス撃破で確定）</div><div class="dgLog">${dgMsg}</div><div class="dgRow"><button class="dgBtn sub" id="dgPause">一時中断</button><button class="dgBtn red" id="dgAbort">探索放棄</button></div><p style="font-size:11px;color:#5b6577">🧍の隣のマスをタップして移動／📦宝箱 ⛲回復 🪜階段</p>`);
   dgOv().querySelector(".dgGrid").onclick=e=>{const b=e.target.closest("[data-i]");if(b&&!b.disabled)dgMove(+b.dataset.i)};
   $d("dgPause").onclick=async()=>{await saveRun();dgClose()};
@@ -1337,11 +1350,19 @@ function dgMove(i){const c=run.cells[i];if(c==="0"||c==="1"||c==="2"||c==="B"){d
 
 function dgBattle(i,code){const d=EN[code],sc=code==="B"?1:1+DG.esc*(run.f-1),mx=Math.round(d.hp*sc);
   bt={i,code,n:d.n,ic:d.ic,max:mx,hp:mx,atk:Math.round(d.atk*sc),cyc:d.c,c2:d.c2,k:0,p2:false,cd:0,h0:run.hp,p0:run.pot,log:`${d.n}が現れた！`};btView()}
-function btView(){const st=pstat(state),e=bt,cur=e.cyc[e.k],dm=Math.max(1,Math.round(e.atk*cur[1]-st.def));
-  const it=cur[2]==="g"?`🛡 予告：${cur[0]}<br>→ スキルなら貫通できる`:cur[1]>0?`⚠ 予告：${cur[0]}<br>→ 約${dm}ダメージ（防御すれば約${Math.max(1,Math.round(dm*.4))}）`:cur[2]==="h"?`💚 予告：${cur[0]}<br>→ 回復される前に倒そう`:`… 予告：${cur[0]}`;
-  dgShow(`<div class="dgRow"><b>${e.ic} ${e.n}</b><span>${e.hp}/${e.max}</span></div>${bar(e.hp,e.max,"e")}<div class="dgIntent">${it}</div><div class="dgRow" style="margin-top:4px"><b>🧍 あなた</b><span>${run.hp}/${run.mhp}</span></div>${bar(run.hp,run.mhp)}<div class="dgLog">${e.log}</div><div class="dgAct"><button class="dgBtn" data-a="atk">⚔ 攻撃</button><button class="dgBtn sub" data-a="df">🛡 防御</button><button class="dgBtn" data-a="sk" ${e.cd>0?"disabled":""}>✨ スキル${e.cd>0?`（あと${e.cd}）`:""}</button><button class="dgBtn sub" data-a="it" ${run.pot<1?"disabled":""}>💊 回復薬×${run.pot}</button></div>`);
-  dgOv().querySelector(".dgAct").onclick=ev=>{const b=ev.target.closest("[data-a]");if(b&&!b.disabled)dgAct(b.dataset.a)}}
-function dgAct(a){const st=pstat(state),e=bt,cur=e.cyc[e.k],L=[];let guard=false;
+function btUI(){const st=pstat(state),e=bt,cur=e.cyc[e.k],dm=Math.max(1,Math.round(e.atk*cur[1]-st.def));
+  return cur[2]==="g"?`🛡 予告：${cur[0]}<br>→ スキルなら貫通できる`:cur[1]>0?`⚠ 予告：${cur[0]}<br>→ 約${dm}ダメージ（防御すれば約${Math.max(1,Math.round(dm*.4))}）`:cur[2]==="h"?`💚 予告：${cur[0]}<br>→ 回復される前に倒そう`:`… 予告：${cur[0]}`}
+function btView(){const e=bt;
+  dgShow(`<div class="dgStage"><div class="dgFoe"><div class="dgNm"><b>${e.n}</b><span id="btEH"></span></div><div class="dgBar e"><i id="btEB"></i></div><div class="dgSprite" id="btEI">${e.ic}</div></div><div class="dgIntent" id="btInt"></div><div class="dgMe"><span class="dgSprite sm" id="btPI">🧍</span><div style="flex:1"><div class="dgRow"><b>あなた</b><span id="btPH"></span></div><div class="dgBar"><i id="btPB"></i></div></div></div></div><div class="dgLog" id="btLog"></div><div class="dgAct"><button class="dgBtn" data-a="atk">⚔ 攻撃</button><button class="dgBtn sub" data-a="df">🛡 防御</button><button class="dgBtn" data-a="sk">✨ スキル</button><button class="dgBtn sub" data-a="it">💊 回復薬</button></div>`);
+  dgOv().querySelector(".dgAct").onclick=ev=>{const b=ev.target.closest("[data-a]");if(b&&!b.disabled)dgAct(b.dataset.a)};btUpdate()}
+function dgPop(id,t,c){const s=$d(id);if(!s)return;const p=document.createElement("span");p.className="dgPop "+(c||"");p.textContent=t;s.appendChild(p);setTimeout(()=>p.remove(),900);if(!c){s.classList.remove("hit");void s.offsetWidth;s.classList.add("hit")}}
+function btUpdate(e0,p0){const e=bt;if(!e||!$d("btEB")){return btView()}
+  $d("btEB").style.width=Math.max(0,e.hp/e.max*100)+"%";$d("btPB").style.width=Math.max(0,run.hp/run.mhp*100)+"%";$d("btEH").textContent=`${Math.max(0,e.hp)}/${e.max}`;$d("btPH").textContent=`${Math.max(0,run.hp)}/${run.mhp}`;
+  $d("btInt").innerHTML=btUI();$d("btLog").textContent=e.log;
+  const sk=dgOv().querySelector('[data-a="sk"]'),it=dgOv().querySelector('[data-a="it"]');sk.disabled=e.cd>0;sk.textContent=e.cd>0?`✨ スキル（あと${e.cd}）`:"✨ スキル";it.disabled=run.pot<1;it.textContent=`💊 回復薬×${run.pot}`;
+  if(e0!==undefined){if(e0>e.hp)dgPop("btEI","-"+(e0-e.hp));else if(e0<e.hp)dgPop("btEI","+"+(e.hp-e0),"g");if(p0>run.hp)dgPop("btPI","-"+(p0-run.hp));else if(p0<run.hp)dgPop("btPI","+"+(run.hp-p0),"g")}}
+let dgBusy=false;
+function dgAct(a){if(dgBusy)return;dgBusy=true;setTimeout(()=>dgBusy=false,350);const st=pstat(state),e=bt,cur=e.cyc[e.k],L=[],e0=bt.hp,p0=run.hp;let guard=false;
   if(a==="atk"){let d=Math.max(1,st.atk);if(cur[2]==="g"){d=Math.max(1,Math.round(d*.3));L.push("硬い！")}e.hp-=d;L.push(`攻撃！ ${d}ダメージ`)}
   else if(a==="sk"){const d=Math.round(st.atk*DG.skMul*(1+st.sk));e.hp-=d;e.cd=DG.skCd;L.push(`スキル！ ${d}ダメージ（防御を貫通）`)}
   else if(a==="df"){guard=true;L.push("身を守った")}
@@ -1355,7 +1376,7 @@ function dgAct(a){const st=pstat(state),e=bt,cur=e.cyc[e.k],L=[];let guard=false
   if(run.hp<=0){dgFinish(false,`${e.n}に倒された…`);return}
   e.k=(e.k+1)%e.cyc.length;if(e.cd>0)e.cd--;
   if(e.c2&&!e.p2&&e.hp<=e.max/2){e.p2=true;e.cyc=e.c2;e.k=0;L.push("番人の様子が変わった！")}
-  e.log=L.join("\n");btView()}
+  e.log=L.join("\n");btUpdate(e0,p0)}
 function dgWin(L){const e=bt,d=DG.drop(run.f);bt=null;run.cells[e.i]=".";run.pos=e.i;
   if(e.code==="B"){dgFinish(true,"");return}
   run.bag.basic+=d;dgMsg=L.join("\n")+`\n${e.n}を倒した！ 基本素材+${d}（未確定）`;saveRun();mapView()}
@@ -1409,12 +1430,13 @@ $d("admin").addEventListener("click",async e=>{const b=e.target.closest("[data-d
 <script>
 (function(){
   const $=id=>document.getElementById(id),body=document.body,det=$("detail"),adm=$("admin"),app=document.querySelector(".app");
-  const PAGES=["home","study","gacha","box","ex"],OPEN={study:"statsBtn",box:"rewardBoxBtn",ex:"materialBtn"},TITLE={study:"📊 勉強",gacha:"🎰 ガチャ",box:"🎁 ごほうびBOX",ex:"🧩 素材・交換所"};
-  const T=[["home","🏠","ホーム"],["study","📊","勉強"],["gacha","🎰","ガチャ"],["box","🎁","BOX"],["ex","🧩","交換"]];
+  const PAGES=["home","study","gacha","dg","box","ex"],OPEN={study:"statsBtn",box:"rewardBoxBtn",ex:"materialBtn"},TITLE={dg:"⚔ ダンジョン",study:"📊 勉強",gacha:"🎰 ガチャ",box:"🎁 ごほうびBOX",ex:"🧩 素材・交換所"};
+  const T=[["home","🏠","ホーム"],["study","📊","勉強"],["gacha","🎰","ガチャ"],["dg","⚔","ダンジョン"],["box","🎁","ごほうび"]];
   const gear=()=>{const g=document.createElement("button");g.className="gear";g.textContent="⚙";g.setAttribute("aria-label","管理");g.onclick=()=>$("adminBtn").click();return g};
   /* ページ共通の見出しバー（ホーム以外で表示） */
   app.insertAdjacentHTML("afterbegin",'<div class="pageBar" id="pageBar"><h2 id="pbTitle"></h2><span class="pbTk">🎫 <b id="pbTickets">0</b>枚</span></div>');
   $("pageBar").appendChild(gear());document.querySelector(".head").appendChild(gear());
+  $("pageBar").insertAdjacentHTML("afterend",'<div id="rewSeg"><button data-s="box">🎁 ごほうびBOX</button><button data-s="ex">🧩 素材・交換所</button></div>');$("rewSeg").onclick=e=>{const b=e.target.closest("[data-s]");if(b)go(b.dataset.s)};
   /* ガチャ画面に履歴ボタン */
   document.querySelector(".gachas").insertAdjacentHTML("afterend",'<div id="gHist"><button id="histOpen">📜 ガチャ履歴</button></div>');
   $("histOpen").onclick=()=>$("historyBtn").click();
@@ -1422,11 +1444,11 @@ $d("admin").addEventListener("click",async e=>{const b=e.target.closest("[data-d
   const bar=document.createElement("nav");bar.className="tabbar";
   bar.innerHTML='<div class="in">'+T.map(t=>`<button class="tab${t[0]==="gacha"?" mid":""}" data-t="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join("")+"</div>";
   const bg=document.createElement("div");bg.id="sheetBg";body.append(bg,bar);
-  const mark=p=>bar.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===p));
+  const mark=p=>bar.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===(p==="ex"?"box":p)));
   function go(p){
     PAGES.forEach(x=>body.classList.toggle("pg-"+x,x===p));
     adm.classList.remove("open");det.classList.remove("open");det.innerHTML="";
-    mark(p);$("pbTitle").textContent=TITLE[p]||"";
+    mark(p);document.querySelectorAll("#rewSeg button").forEach(b=>b.classList.toggle("on",b.dataset.s===p));$("pbTitle").textContent=TITLE[p]||"";
     if(OPEN[p])$(OPEN[p]).click();
     window.scrollTo(0,0);
   }
