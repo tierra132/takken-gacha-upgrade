@@ -762,7 +762,7 @@ function detail(html){
 }
 function tableHtml(type,title){const g=state.gachas[type]||{},c=normalizeCeiling(g.ceiling),rules=String(g.rules||"").trim();
   const row=x=>{const r=x[0],cls=String(r).toLowerCase();let it;
-    if(type==="red"){const k=(DG_DUP[r]||DG_DUP.N);it=`${GEAR.filter(e=>e.r===r).map(e=>e.name).join("・")}<br><small>重複→${DG_LB[k[0]]}×${k[1]}</small>`}
+    if(type==="red"){const k=(DG_DUP[r]||DG_DUP.N);it=`${GEAR.filter(e=>e.r===r&&!e.cr).map(e=>e.name).join("・")}<br><small>重複→${DG_LB[k[0]]}×${k[1]}</small>`}
     else{const k=(DG_MAT[r]||DG_MAT.N);it=`${DG_LB[k[0]]} ×${k[1]}`}
     return `<tr><td><span class="rarityBadgeSmall ${cls}">${escapeHtml(r)}</span></td><td>${it}</td><td>${x[2]}%</td></tr>`};
   const ceil=c.enabled?`<div class="note">🎯 天井：${c.items.slice(0,c.slotCount).map(i=>`${i.draws}回で${i.rarity}確定`).join("／")}</div>`:"";
@@ -1249,52 +1249,62 @@ document.getElementById("admin").addEventListener("click",e=>{const b=e.target.c
 
 /* ===== ダンジョン機能 v1（企画仕様案 v1 準拠）===== */
 const DG={cost:2,hp:40,atk:6,def:2,pot:4,potHeal:.4,skMul:1.8,skCd:3,floors:5,
-  lvMax:5,lvPer:.12,lvBase:5,lvStep:5,dropMul:1,esc:.25,lvCost:l=>DG.lvBase+DG.lvStep*l,starMax:2,starPer:.25,starBoss:[3,6],starRare:[2,4],
+  lvMax:5,lvPer:.12,lvBase:5,lvStep:5,dropMul:1,esc:.12,lvCost:l=>DG.lvBase+DG.lvStep*l,starMax:2,starPer:.25,starBoss:[3,6],starRare:[2,4],
   drop:f=>Math.max(1,Math.round((1+Math.ceil(f/2))*DG.dropMul)),bossDrop:2,firstClear:3,reach:f=>3*f,chest:f=>f<=2?{basic:6}:{rare:1}};
 // id,名前,レア,部位,攻,防,HP,スキル威力,反撃,毎ターン回復,回復薬強化
 const GEAR=[["w0","木の剣","N","w",3,0,0,0,0,0,0],["w1","鉄の剣","R","w",5,0,0,0,0,0,0],["w2","烈火の剣","SR","w",6,0,0,.5,0,0,0],["w3","竜牙の大剣","SSR","w",8,0,0,.6,0,0,0],["w4","神剣アマツ","UR","w",10,0,0,.9,0,0,0],
   ["a0","布の服","N","a",0,1,5,0,0,0,0],["a1","革の鎧","R","a",0,2,10,0,0,0,0],["a2","反撃の盾","SR","a",0,3,10,0,.6,0,0],["a3","聖騎士の鎧","SSR","a",0,5,20,0,.8,0,0],["a4","不動の鎧","UR","a",0,7,30,0,1,0,0],
   ["x0","お守り","N","x",0,0,5,0,0,0,0],["x1","薬草袋","R","x",0,0,8,0,0,0,.15],["x2","癒しの指輪","SR","x",0,0,10,0,0,2,0],["x3","賢者の護符","SSR","x",0,0,15,0,0,3,.3],["x4","英雄の証","UR","x",2,0,20,.3,0,4,.4]
 ].map(a=>({id:a[0],name:a[1],r:a[2],sl:a[3],atk:a[4],def:a[5],hp:a[6],sk:a[7],ct:a[8],rg:a[9],pot:a[10]}));
+GEAR.push({id:"w5",name:"樹根の大槌",r:"SSR",sl:"w",atk:8,def:0,hp:10,sk:.4,ct:0,rg:0,pot:0,e:"wood",cr:1},{id:"w6",name:"炎竜の剣",r:"SSR",sl:"w",atk:9,def:0,hp:0,sk:.5,ct:0,rg:0,pot:0,e:"fire",cr:1},{id:"w7",name:"蒼海の槍",r:"SSR",sl:"w",atk:9,def:0,hp:0,sk:.5,ct:0,rg:0,pot:0,e:"water",cr:1});
 const GM=Object.fromEntries(GEAR.map(g=>[g.id,g]));
 const EN={
   0:{n:"突進ゴブリン",ic:"👺",hp:20,atk:6,c:[["攻撃",1],["ため…次は強攻撃！",0],["突進！",2.2]]},
   1:{n:"鉄甲ムシ",ic:"🪲",hp:26,atk:5,c:[["守りの構え（通常攻撃が効きにくい）",0,"g"],["攻撃",1],["攻撃",1]]},
   2:{n:"ヒールキノコ",ic:"🍄",hp:16,atk:4,c:[["攻撃",1],["自己回復",0,"h"],["攻撃",1.4]]},
   B:{n:"岩鎧の番人",ic:"🗿",hp:80,atk:8,c:[["攻撃",1],["ため…強打の準備",0],["大打撃！",3]],c2:[["守りの構え（通常攻撃が効きにくい）",0,"g"],["ため…強打の準備",0],["大打撃！",3.2]]}};
-const FL=[[0,0],[1,0],[2,1],[0,2],[2]];
+const MW=9,MN=81,ELM={fire:{n:"炎",ic:"🔥"},water:{n:"水",ic:"💧"},wood:{n:"木",ic:"🌿"}},BEAT={fire:"wood",wood:"water",water:"fire"},WEAK={wood:"fire",water:"wood",fire:"water"};
+const dgEl=(a,b)=>!a||!b?1:BEAT[a]===b?1.3:BEAT[b]===a?.75:1,DGSP={0:1,1:.5,2:.8,B:0};
+const DGN={
+ d1:{id:"d1",n:"はじまりの洞窟",ic:"🕳️",desc:"岩とムシの静かな洞窟。まずはここから。",floors:8,hue:28,el:null,sight:3,spm:.8,hpm:1,atkm:1,pre:"",icons:{0:"👺",1:"🪲",2:"🍄"},boss:EN.B,mat:"岩核",matIc:"🪨"},
+ d2:{id:"d2",n:"燃える坑道",ic:"🌋",desc:"炎の魔物がうろつく坑道。敵は素早く、攻撃も激しい。",floors:10,hue:8,el:"fire",sight:4,spm:1,hpm:1,atkm:1.2,pre:"炎の",icons:{0:"🦊",1:"🦂",2:"🔥"},need:"d1",boss:{n:"炎獄の竜",ic:"🐲",hp:110,atk:10,c:[["攻撃",1],["ため…炎の準備",0],["火炎のブレス！",3]],c2:[["守りの構え（通常攻撃が効きにくい）",0,"g"],["ため…炎の準備",0],["火炎のブレス！",3.3]]},mat:"竜の炎核",matIc:"🐲"},
+ d3:{id:"d3",n:"水底の迷宮",ic:"🌊",desc:"水の魔物が潜む深い迷宮。敵はゆっくりだが頑丈。",floors:10,hue:205,el:"water",sight:3,spm:.6,hpm:1.35,atkm:1,pre:"水の",icons:{0:"🦈",1:"🦀",2:"🐙"},need:"d1",boss:{n:"海蛇の主",ic:"🐍",hp:130,atk:9,c:[["攻撃",1],["ため…渦の準備",0],["大渦！",3]],c2:[["自己回復",0,"h"],["ため…渦の準備",0],["大渦！",3.2]]},mat:"蒼鱗",matIc:"🐍"}};
 const SLN={w:"武器",a:"防具",x:"装飾"};
 const DG_DUP={N:["basic",3],R:["basic",6],SR:["rare",1],SSR:["rare",2],UR:["rare",4]},DG_MAT={N:["basic",5],R:["basic",10],SR:["rare",1],SSR:["rare",2],UR:["rare",4]},DG_LB={basic:"基本素材",rare:"希少素材"};
 const $d=id=>document.getElementById(id);
 const dgRng=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
-function dgEns(s){s.gm=Object.assign({basic:0,rare:0,boss:0},s.gm);s.dg=Object.assign({best:0,clears:0},s.dg);for(const k of["gear","eq","lv","star"])s[k]=s[k]&&typeof s[k]==="object"?s[k]:{};s.energy=Math.max(0,Math.floor(Number(s.energy)||0));return s}
+function dgEns(s){s.gm=Object.assign({basic:0,rare:0,boss:0},s.gm);s.gm.bs=Object.assign({d1:0,d2:0,d3:0},s.gm.bs);s.dg=Object.assign({best:0,clears:0},s.dg);s.dg.cl=s.dg.cl||{};s.dg.bf=s.dg.bf||{};for(const k of["gear","eq","lv","star"])s[k]=s[k]&&typeof s[k]==="object"?s[k]:{};s.energy=Math.max(0,Math.floor(Number(s.energy)||0));return s}
 const dgOwned=(s,id)=>id==="w0"||id==="a0"||!!(s.gear||{})[id];
 const dgMul=(s,id)=>1+DG.lvPer*((s.lv||{})[id]||0)+DG.starPer*((s.star||{})[id]||0);
 const dgEq=(s,sl)=>{const e=(s.eq||{})[sl];return e&&dgOwned(s,e)?e:(sl==="w"?"w0":sl==="a"?"a0":"")};
-function pstat(s){const o={hp:DG.hp,atk:DG.atk,def:DG.def,sk:0,ct:0,rg:0,pot:0};
-  for(const sl of["w","a","x"]){const id=dgEq(s,sl);if(!id)continue;const g=GM[id],m=dgMul(s,id);o.hp+=Math.round(g.hp*m);o.atk+=Math.round(g.atk*m);o.def+=Math.round(g.def*m);o.sk+=g.sk;o.ct=Math.max(o.ct,g.ct);o.rg+=Math.round(g.rg*m);o.pot+=g.pot}
+function pstat(s){const o={hp:DG.hp,atk:DG.atk,def:DG.def,sk:0,ct:0,rg:0,pot:0,el:null};
+  for(const sl of["w","a","x"]){const id=dgEq(s,sl);if(!id)continue;const g=GM[id],m=dgMul(s,id);o.hp+=Math.round(g.hp*m);o.atk+=Math.round(g.atk*m);o.def+=Math.round(g.def*m);o.sk+=g.sk;o.ct=Math.max(o.ct,g.ct);o.rg+=Math.round(g.rg*m);o.pot+=g.pot;if(sl==="w")o.el=g.e||null}
   return o}
-const dgTxt=(s,g)=>{const m=dgMul(s,g.id),a=[];if(g.atk)a.push("攻撃+"+Math.round(g.atk*m));if(g.def)a.push("防御+"+Math.round(g.def*m));if(g.hp)a.push("HP+"+Math.round(g.hp*m));if(g.sk)a.push(`スキル威力+${Math.round(g.sk*100)}%`);if(g.ct)a.push("防御時に反撃");if(g.rg)a.push("毎ターンHP+"+Math.round(g.rg*m));if(g.pot)a.push(`回復薬+${Math.round(g.pot*100)}%`);return a.join(" ／ ")};
+const dgTxt=(s,g)=>{const m=dgMul(s,g.id),a=[];if(g.e)a.push(ELM[g.e].ic+ELM[g.e].n+"属性");if(g.atk)a.push("攻撃+"+Math.round(g.atk*m));if(g.def)a.push("防御+"+Math.round(g.def*m));if(g.hp)a.push("HP+"+Math.round(g.hp*m));if(g.sk)a.push(`スキル威力+${Math.round(g.sk*100)}%`);if(g.ct)a.push("防御時に反撃");if(g.rg)a.push("毎ターンHP+"+Math.round(g.rg*m));if(g.pot)a.push(`回復薬+${Math.round(g.pot*100)}%`);return a.join(" ／ ")};
 
 /* --- ガチャ連動：赤＝装備、青＝素材。リソースはアプリ内のみ。doDraw内から呼ばれる --- */
 function applyGameDraw(s,type,results){dgEns(s);
   const RK=["N","R","SR","SSR","UR"],DUP=DG_DUP,MAT=DG_MAT,LB=DG_LB;
   for(const x of results){x.game=true;const rar=RK.includes(x.rarity)?x.rarity:"N";
-    if(type==="red"){const pool=GEAR.filter(g=>g.r===rar),g=pool[Math.floor(Math.random()*pool.length)];
+    if(type==="red"){const pool=GEAR.filter(g=>g.r===rar&&!g.cr),g=pool[Math.floor(Math.random()*pool.length)];
       if(dgOwned(s,g.id)){const[k,q]=DUP[rar];s.gm[k]+=q;x.reward=`${g.name}→${LB[k]}×${q}`}else{s.gear[g.id]=1;x.reward=`NEW ${g.name}`}}
     else{const[k,q]=MAT[rar];s.gm[k]+=q;x.reward=`${LB[k]} ×${q}`}
     x.reward=x.reward.slice(0,20);x.materialId="";x.materialQty=0}}
 
 /* --- マップ生成 --- */
-function genFloor(seed,f){const r=dgRng(seed+f*7919),c=Array(25).fill(".");c[24]=f===DG.floors?"B":">";
-  let free=[];for(let i=1;i<24;i++)if(!(f===DG.floors&&i===1))free.push(i);
-  for(let i=free.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[free[i],free[j]]=[free[j],free[i]]}
-  if(f===DG.floors)c[1]="S";
-  FL[f-1].forEach(t=>{c[free.pop()]=String(t)});
-  if(f<DG.floors)c[free.pop()]="C";
-  if(f===2||f===4)c[free.pop()]="S";
-  return c}
-
+function dgBfs(c,from){const d=Array(MN).fill(99);d[from]=0;const q=[from];for(let h=0;h<q.length;h++){const p=q[h];for(const s of[1,-1,MW,-MW]){const t=p+s;if(t<0||t>=MN||(s===1&&t%MW===0)||(s===-1&&p%MW===0)||c[t]==="#"||d[t]<99)continue;d[t]=d[p]+1;q.push(t)}}return d}
+function genFloor(seed,f,dn){const r=dgRng(seed+f*7919),c=Array(MN).fill("#");let p=40,n=1,g=0;c[40]=".";const goal=32+Math.floor(r()*12);
+  while(n<goal&&g++<5000){const s=[1,-1,MW,-MW][Math.floor(r()*4)],t=p+s;if(t<0||t>=MN||(s===1&&t%MW===0)||(s===-1&&p%MW===0))continue;p=t;if(c[p]==="#"){c[p]=".";n++}}
+  const d=dgBfs(c,40),fl=[];for(let i=0;i<MN;i++)if(c[i]!=="#")fl.push(i);
+  const end=fl.reduce((a,b)=>d[b]>d[a]?b:a,40),last=f===dn.floors;
+  const pool=fl.filter(i=>i!==40&&i!==end);for(let i=pool.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+  const take=m=>{const k=pool.findIndex(i=>d[i]>=m);return k<0?pool.pop():pool.splice(k,1)[0]},en=[];
+  if(last)en.push({i:end,t:"B",a:0});else c[end]=">";
+  const ne=Math.min(5,2+Math.floor(f/3)),tp=f<3?[0,0,1]:f<6?[0,1,2]:[0,1,2,1,2];
+  for(let k=0;k<ne;k++)en.push({i:take(5),t:tp[Math.floor(r()*tp.length)],a:0});
+  for(let k=0;k<(f>=4?2:1);k++)c[take(2)]="C";
+  if(last){const nb=[41,39,49,31].find(i=>c[i]===".");if(nb!==undefined)c[nb]="S"}else if(f%3===0)c[take(2)]="S";
+  return{cells:c,en}}
 /* --- 画面 --- */
 let run=null,bt=null,dgMsg="",dgSaving=Promise.resolve();
 (function(){const st=document.createElement("style");st.textContent=`#dgCard{margin-top:12px}
@@ -1307,13 +1317,14 @@ let run=null,bt=null,dgMsg="",dgSaving=Promise.resolve();
 .dgBtn{border:0;border-radius:14px;padding:12px 14px;font-weight:800;font-size:14px;background:#2f6fed;color:#fff;flex:1}
 .dgBtn.sub{background:#e3eafb;color:#1d3a8a}.dgBtn.red{background:#d14a4a}.dgBtn:disabled{opacity:.4}
 #dgOv{position:fixed;inset:0;z-index:30;background:#eef2fb;overflow:hidden;padding:calc(10px + env(safe-area-inset-top)) 12px calc(10px + env(safe-area-inset-bottom));display:none;touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}#dgOv.on{display:block}#dgOv.sc{overflow:auto}#dgOv.sc .dgW{height:auto;display:block}#dgOv button{touch-action:manipulation}
-.dgW{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column}.dgGrid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:6px auto;width:min(100%,calc(100dvh - 318px));flex:none}
-.dgC{aspect-ratio:1;border:0;border-radius:12px;background:#fff;font-size:24px;color:#222;box-shadow:0 2px 6px #1d3a8a14}.dgC:disabled{opacity:1}
+.dgW{max-width:520px;margin:0 auto;height:100%;display:flex;flex-direction:column}.dgGrid{display:grid;grid-template-columns:repeat(9,1fr);gap:2px;margin:6px auto;width:min(100%,calc(100dvh - 318px));flex:none}
+.dgC{aspect-ratio:1;border:0;border-radius:6px;background:#fff;font-size:min(20px,4.4vw);color:#222;box-shadow:0 2px 6px #1d3a8a14}.dgC:disabled{opacity:1}
 .dgC.adj{outline:3px solid #2f6fed66;background:#f2f6ff}.dgC.me{background:#ffe9a8}
 .dgBar{height:12px;background:#dde3f0;border-radius:8px;overflow:hidden}.dgBar i{display:block;height:100%;background:linear-gradient(90deg,#34c38f,#4f86ff)}.dgBar.e i{background:linear-gradient(90deg,#ff9a7b,#d14a4a)}
 .dgIntent{background:#fff3cf;border-radius:12px;padding:10px;font-weight:800;margin:10px 0;line-height:1.5}
 .dgAct{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.dgLog{min-height:2.7em;max-height:4em;overflow:hidden;font-size:12px;color:#46506a;margin:8px 0;white-space:pre-line}
 .dgG{background:#fff;border-radius:14px;padding:10px;margin:8px 0}.dgG.eq{outline:3px solid #2f6fed}.dgG small{color:#5b6577}.dgG .dgRow{margin-top:8px}.dgG .dgBtn{padding:8px;font-size:13px}
+.dgC.alert{outline:2px solid #ff4d4d;outline-offset:-2px}.dgC.me{box-shadow:inset 0 0 0 3px #ffd54a}
 #rewSeg{display:none;gap:6px;margin:0 0 10px}body.pg-box #rewSeg,body.pg-ex #rewSeg{display:flex}#rewSeg button{flex:1;border:0;border-radius:12px;padding:10px;font-weight:800;background:#e3eafb;color:#1d3a8a}#rewSeg button.on{background:#2f6fed;color:#fff}
 .dgHero{background:linear-gradient(160deg,#3f78f2,#7aa8ff);color:#fff;border-radius:18px;padding:16px;text-align:center}.dgHT{font-weight:900;font-size:18px}.dgPips{display:flex;gap:4px;justify-content:center;margin:10px 0;flex-wrap:wrap}.dgPips i{font-style:normal;font-size:22px;opacity:.35;filter:grayscale(1)}.dgPips i.on{opacity:1;filter:none}
 .dgSub{font-size:12px;line-height:1.6}.dgHero .dgBtn{background:#fff;color:#1d3a8a;width:100%;margin-top:8px;font-size:16px}.dgHero .dgBtn:disabled{opacity:.6}
@@ -1328,44 +1339,55 @@ let run=null,bt=null,dgMsg="",dgSaving=Promise.resolve();
 const dgOv=()=>$d("dgOv"),dgShow=(h,sc)=>{dgOv().innerHTML=`<div class="dgW">${h}</div>`;dgOv().classList.toggle("sc",!!sc);dgOv().classList.add("on")},dgClose=()=>{dgOv().classList.remove("on");dgRender()};
 const bar=(a,b,c="")=>`<div class="dgBar ${c}"><i style="width:${Math.max(0,Math.min(100,a/b*100))}%"></i></div>`;
 
-function dgRender(){const el=$d("dgCard");if(!el||!state||!state.gm)return;const e=Math.floor(Number(state.energy)||0),g=state.gm,d=state.dg||{},can=!!state.run||e>=DG.cost;
+function dgRender(){const el=$d("dgCard");if(!el||!state||!state.gm)return;const e=Math.floor(Number(state.energy)||0),g=state.gm,d=state.dg||{},cl=d.cl||{},bf=d.bf||{},bs=g.bs||{},r0=state.run;
   const pips=Array.from({length:Math.max(DG.cost,Math.min(e,10))},(_,i)=>`<i class="${i<e?"on":""}">⚡</i>`).join("");
   const eq=["w","a","x"].map(sl=>{const id=dgEq(state,sl);return id?GM[id].name:"なし"}).join("／");
-  el.innerHTML=`<div class="dgHero"><div class="dgHT">⚔ ダンジョン</div><div class="dgPips">${pips}</div><div class="dgSub">${state.run?"探索の途中です。続きから再開できます。":e>=DG.cost?"準備OK！ 探索に出られます。":`あと⚡${DG.cost-e}で探索できます（勉強30分で⚡1）`}</div><button class="dgBtn" id="dgGo" ${can?"":"disabled"}>${state.run?"▶ 探索を再開":`🚪 探索に出る（⚡${DG.cost}）`}</button></div><div class="dgChips"><span>🪨 基本<br><b>${g.basic}</b></span><span>💎 希少<br><b>${g.rare}</b></span><span>👑 ボス<br><b>${g.boss}</b></span></div><div class="dgSub" style="color:#5b6577">装備：${eq}<br>最高到達 ${d.best||0}階／制覇 ${d.clears||0}回</div><button class="dgBtn sub" id="dgGear" style="width:100%;margin-top:10px">🎒 装備・強化</button>`;
-  $d("dgGo").onclick=dgEnter;$d("dgGear").onclick=gearView;
-  }
+  const list=Object.values(DGN).map(n=>{const lock=n.need&&!(cl[n.need]>0),can=!r0&&!lock&&e>=DG.cost;return `<div class="dgG" style="border-left:6px solid hsl(${n.hue},60%,45%)"><b>${n.ic} ${n.n}</b> ${n.el?ELM[n.el].ic+ELM[n.el].n+"属性":"無属性"}<br><small>${n.desc}</small><br><small>全${n.floors}階／最高 地下${bf[n.id]||0}階／制覇 ${cl[n.id]||0}回<br>ボス素材：${n.matIc}${n.mat} ${bs[n.id]||0}</small><button class="dgBtn" data-go="${n.id}" ${can?"":"disabled"} style="width:100%;margin-top:8px">${lock?`🔒 ${DGN[n.need].n}を制覇で解放`:`🚪 出発（⚡${DG.cost}）`}</button></div>`}).join("");
+  el.innerHTML=`<div class="dgHero"><div class="dgHT">⚔ ダンジョン</div><div class="dgPips">${pips}</div><div class="dgSub">${r0?`探索の途中です（${DGN[r0.d]?DGN[r0.d].n:""}）`:e>=DG.cost?"準備OK！ 行き先を選ぼう。":`あと⚡${DG.cost-e}で探索できます（勉強30分で⚡1）`}</div>${r0?`<button class="dgBtn" id="dgGo">▶ 探索を再開</button>`:""}</div><div class="dgChips"><span>🪨 基本<br><b>${g.basic}</b></span><span>💎 希少<br><b>${g.rare}</b></span><span>👑 ボス<br><b>${g.boss}</b></span></div>${list}<div class="dgSub" style="color:#5b6577">装備：${eq}</div><button class="dgBtn sub" id="dgGear" style="width:100%;margin-top:10px">🎒 装備・強化</button>`;
+  el.onclick=ev=>{const b=ev.target.closest("[data-go]");if(b&&!b.disabled)dgEnter(b.dataset.go)};
+  if($d("dgGo"))$d("dgGo").onclick=()=>dgEnter();$d("dgGear").onclick=gearView;}
 const _render=render;render=function(){dgApply();_render();dgRender()};
 
 function saveRun(reach){if(!run)return dgSaving;const r=clone(run);if(bt){r.hp=bt.h0;r.pot=bt.p0}
-  dgSaving=dgSaving.then(()=>updateCloud(s=>{dgEns(s);s.run=r;if(reach&&reach>s.dg.best){s.dg.best=reach;s.gm.basic+=DG.reach(reach)}return s})).catch(console.error);return dgSaving}
+  dgSaving=dgSaving.then(()=>updateCloud(s=>{dgEns(s);s.run=r;if(reach&&reach>(s.dg.bf[r.d]||0)){s.dg.bf[r.d]=reach;s.dg.best=Math.max(s.dg.best,reach);s.gm.basic+=DG.reach(reach)}return s})).catch(console.error);return dgSaving}
 document.addEventListener("visibilitychange",()=>{if(document.hidden&&run)saveRun()});
 
-async function dgEnter(){if(state.run){dgResume();return}
-  try{await updateCloud(s=>{dgEns(s);if(s.run)throw new Error("RUN");if(s.energy<DG.cost)throw new Error("NRG");const st=pstat(s),seed=Math.floor(Math.random()*1e9),ex=Math.min(3,s.extraPot||0);s.extraPot=(s.extraPot||0)-ex;s.energy-=DG.cost;s.run={seed,f:1,pos:0,cells:genFloor(seed,1),hp:st.hp,mhp:st.hp,pot:DG.pot+ex,bag:{basic:0,rare:0}};return s});dgResume()}
-  catch(e){errModal("探索に出られません",e.message==="NRG"?"探索エネルギーが足りません。勉強を記録すると増えます。":"状態を更新してもう一度お試しください。")}}
-function dgResume(){run=clone(state.run);bt=null;dgMsg="探索を再開しました。";dgIntro(mapView)}
-function dgIntro(next){try{if(localStorage.getItem("dgIntro")){next();return}}catch(e){next();return}dgShow(`<h2>あそびかた</h2><div class="dgG">🧍 光っているマスをタップして進みます<br>👺 敵は<b>予告</b>を見て行動：<br>　⚠強攻撃＝🛡防御　🛡構え＝✨スキル<br>📦宝箱 ⛲回復 🪜階段<br>🏆 5階のボスを倒すと素材が確定！<br><small>やられると未確定の素材は失います。中断はいつでもOKです。</small></div><button class="dgBtn" id="dgOk" style="width:100%">はじめる</button>`,1);$d("dgOk").onclick=()=>{try{localStorage.setItem("dgIntro","1")}catch(e){}next()}}
+async function dgEnter(did){if(state.run){dgResume();return}const dn=DGN[did];if(!dn)return;
+  try{await updateCloud(s=>{dgEns(s);if(s.run)throw new Error("RUN");if(dn.need&&!(s.dg.cl[dn.need]>0))throw new Error("LOCK");if(s.energy<DG.cost)throw new Error("NRG");const st=pstat(s),seed=Math.floor(Math.random()*1e9),ex=Math.min(3,s.extraPot||0),g=genFloor(seed,1,dn);s.extraPot=(s.extraPot||0)-ex;s.energy-=DG.cost;s.run={d:did,seed,f:1,pos:40,cells:g.cells,en:g.en,sn:"0".repeat(MN),st:0,hp:st.hp,mhp:st.hp,pot:DG.pot+ex,bag:{basic:0,rare:0}};return s});dgResume()}
+  catch(e){errModal("探索に出られません",e.message==="NRG"?"探索エネルギーが足りません。勉強を記録すると増えます。":e.message==="LOCK"?"このダンジョンはまだ解放されていません。":"状態を更新してもう一度お試しください。")}}
+function dgResume(){const r=state.run;if(!r||!r.d||!r.cells||r.cells.length!==MN){updateCloud(s=>{if(s.run){s.run=null;s.energy=(Number(s.energy)||0)+DG.cost}return s}).then(()=>errModal("探索データを更新しました","仕様変更のため前回の探索をリセットし、⚡を返却しました。"));return}
+  run=clone(r);bt=null;dgMsg="探索を再開しました。";dgSee();dgIntro(mapView)}
+function dgIntro(next){try{if(localStorage.getItem("dgIntro")){next();return}}catch(e){next();return}dgShow(`<h2>あそびかた</h2><div class="dgG">🧍 十字ボタンで進みます。暗い洞窟は歩くと見えてきます<br>❗ 敵は近づくと追ってきます。弱点の属性（🔥→🌿→💧→🔥）をつこう<br>👺 敵は<b>予告</b>を見て行動：<br>　⚠強攻撃＝🛡防御　🛡構え＝✨スキル<br>📦宝箱 ⛲回復 🪜階段<br>🏆 最下層のボスを倒すと素材が確定！<br><small>やられると未確定の素材は失います。中断はいつでもOKです。</small></div><button class="dgBtn" id="dgOk" style="width:100%">はじめる</button>`,1);$d("dgOk").onclick=()=>{try{localStorage.setItem("dgIntro","1")}catch(e){}next()}}
 
-function mapView(){const px=run.pos%5,py=Math.floor(run.pos/5),IC={"0":EN[0].ic,"1":EN[1].ic,"2":EN[2].ic,B:EN.B.ic,C:"📦",S:"⛲",">":"🪜"};
-  const cells=run.cells.map((c,i)=>`<div class="dgC ${i===run.pos?"me":""} t${c===">"?"N":c}">${i===run.pos?"🧍":IC[c]||""}</div>`).join("");
-  dgShow(`<div class="dgRow"><b>${run.f}階 / ${DG.floors}階</b><span>💊×${run.pot}</span></div><div style="font-size:12px;margin:6px 0 4px">HP ${run.hp}/${run.mhp}</div>${bar(run.hp,run.mhp)}<div class="dgGrid">${cells}</div><div class="dgLog">${dgMsg}</div><div class="dgPad"><i></i><button data-m="-5" ${py<1?"disabled":""}>▲</button><i></i><button data-m="-1" ${px<1?"disabled":""}>◀</button><button data-m="5" ${py>3?"disabled":""}>▼</button><button data-m="1" ${px>3?"disabled":""}>▶</button></div><div style="font-size:12px;text-align:center">未確定の素材：基本 ${run.bag.basic}／希少 ${run.bag.rare}（ボス撃破で確定）</div><div class="dgRow" style="margin-top:12px"><button class="dgBtn sub" id="dgPause">一時中断</button><button class="dgBtn red" id="dgAbort">探索放棄</button></div>`);
-  dgOv().querySelector(".dgPad").addEventListener("pointerdown",e=>{const b=e.target.closest("[data-m]");if(!b||b.disabled)return;e.preventDefault();if(dgBusy)return;dgBusy=true;setTimeout(()=>dgBusy=false,110);dgMove(run.pos+ +b.dataset.m)});
+function dgSee(){const d=dgBfs(run.cells,run.pos),s=run.sn.split("");for(let i=0;i<MN;i++)if(d[i]<=3){s[i]="1";for(const k of[1,-1,MW,-MW]){const t=i+k;if(t>=0&&t<MN&&!(k===1&&t%MW===0)&&!(k===-1&&i%MW===0)&&run.cells[t]==="#")s[t]="1"}}run.sn=s.join("")}
+const dgOkMv=s=>{const t=run.pos+s;return !(t<0||t>=MN||(s===1&&t%MW===0)||(s===-1&&run.pos%MW===0)||run.cells[t]==="#")};
+function mapView(){const dn=DGN[run.d],rt=(run.f-1)/Math.max(1,dn.floors-1),dm=dgBfs(run.cells,run.pos),L=(l,s)=>`hsl(${dn.hue},${s}%,${l}%)`,fl=L(Math.round(90-rt*52),38),wl=L(Math.round(30-rt*18),28),IC={C:"📦",S:"⛲",">":"🪜"},ens={};run.en.forEach(e=>{ens[e.i]=e});
+  const cells=run.cells.map((c,i)=>{const seen=run.sn[i]==="1",vis=dm[i]<=4||i===run.pos;let bg="#0b0e1a",ic="",cl="";if(seen){bg=c==="#"?wl:fl;ic=IC[c]||""}
+    const e=ens[i];if(e&&dm[i]<=4){ic=e.t==="B"?dn.boss.ic:dn.icons[e.t];if(e.a)cl=" alert"}if(i===run.pos){ic="🧍";cl+=" me"}
+    return `<div class="dgC${cl}" style="background:${bg};${seen&&!vis?"opacity:.62":""}">${ic}</div>`}).join("");
+  dgShow(`<div class="dgRow"><b>${dn.ic} ${dn.n}　地下${run.f}/${dn.floors}階</b><span>💊×${run.pot}</span></div><div style="font-size:12px;margin:6px 0 4px">HP ${run.hp}/${run.mhp}</div>${bar(run.hp,run.mhp)}<div class="dgGrid" style="background:${L(8,30)};padding:3px;border-radius:10px">${cells}</div><div class="dgLog">${dgMsg}</div><div class="dgPad"><i></i><button data-m="${-MW}" ${dgOkMv(-MW)?"":"disabled"}>▲</button><i></i><button data-m="-1" ${dgOkMv(-1)?"":"disabled"}>◀</button><button data-m="${MW}" ${dgOkMv(MW)?"":"disabled"}>▼</button><button data-m="1" ${dgOkMv(1)?"":"disabled"}>▶</button></div><div style="font-size:12px;text-align:center">未確定の素材：基本 ${run.bag.basic}／希少 ${run.bag.rare}（ボス撃破で確定）</div><div class="dgRow" style="margin-top:10px"><button class="dgBtn sub" id="dgPause">一時中断</button><button class="dgBtn red" id="dgAbort">探索放棄</button></div>`);
+  dgOv().querySelector(".dgPad").addEventListener("pointerdown",e=>{const b=e.target.closest("[data-m]");if(!b||b.disabled)return;e.preventDefault();if(dgBusy)return;dgBusy=true;setTimeout(()=>dgBusy=false,110);dgStep(+b.dataset.m)});
   $d("dgPause").onclick=async()=>{await saveRun();dgClose()};
   $d("dgAbort").onclick=()=>{if(confirm(`探索を放棄しますか？\n未確定の素材（基本${run.bag.basic}・希少${run.bag.rare}）は失われ、⚡も戻りません。\n（中断したいだけなら「一時中断」を押してください）`))dgFinish(false,"探索を放棄しました。")}}
-function dgMove(i){const c=run.cells[i];if(c==="0"||c==="1"||c==="2"||c==="B"){dgBattle(i,c);return}
-  run.pos=i;
-  if(c==="C"){const r=DG.chest(run.f);run.bag.basic+=r.basic||0;run.bag.rare+=r.rare||0;run.cells[i]=".";dgMsg=`宝箱！ ${r.basic?`基本素材+${r.basic}`:`希少素材+${r.rare}`}（未確定）`;saveRun()}
-  else if(c==="S"){const h=run.f===DG.floors?run.mhp:Math.round(run.mhp*.6);run.hp=Math.min(run.mhp,run.hp+h);run.cells[i]=".";dgMsg=run.f===DG.floors?"⛲ ボス前の泉でHPが全回復した！":"⛲ 回復の泉でHPが回復した。";saveRun()}
-  else if(c===">"){const f=run.f+1,bonus=f>(state.dg&&state.dg.best||0);run.f=f;run.cells=genFloor(run.seed,f);run.pos=0;dgMsg=`${f}階へ進んだ。${bonus?`初回到達ボーナス：基本素材+${DG.reach(f)}（確定）`:""}`;saveRun(f)}
-  else dgMsg="";
-  mapView()}
-
-function dgBattle(i,code){const d=EN[code],sc=code==="B"?1:1+DG.esc*(run.f-1),mx=Math.round(d.hp*sc);
-  bt={i,code,n:d.n,ic:d.ic,max:mx,hp:mx,atk:Math.round(d.atk*sc),cyc:d.c,c2:d.c2,k:0,p2:false,cd:0,h0:run.hp,p0:run.pot,log:`${d.n}が現れた！`};btView()}
+function dgEnemyTurn(){const dn=DGN[run.d],dm=dgBfs(run.cells,run.pos),occ=new Set(run.en.map(e=>e.i)),r=dgRng(run.seed+run.f*7919+run.st*104729);let hit=-1,al=false;
+  run.en.forEach((e,k)=>{if(e.t==="B")return;const sp=Math.min(1,DGSP[e.t]*dn.spm),near=dm[e.i]<=dn.sight;if(near&&!e.a){e.a=1;al=true}if(!near)e.a=0;
+    if(hit>=0||!(Math.floor(run.st*sp)>Math.floor((run.st-1)*sp)))return;
+    const D=[1,-1,MW,-MW],nb=D.map(s=>[s,e.i+s]).filter(([s,t])=>t>=0&&t<MN&&!(s===1&&t%MW===0)&&!(s===-1&&e.i%MW===0)&&run.cells[t]!=="#"&&!occ.has(t)).map(x=>x[1]);let to=-1;
+    if(near){const b=nb.filter(t=>dm[t]<dm[e.i]).sort((a,b)=>dm[a]-dm[b]);if(b.length)to=b[0]}else if(r()<.35&&nb.length)to=nb[Math.floor(r()*nb.length)];
+    if(to>=0){if(to===run.pos){hit=k;return}occ.delete(e.i);occ.add(to);e.i=to}});
+  if(al)dgMsg="❗ 敵に気づかれた！";return hit}
+function dgStep(s){if(!dgOkMv(s))return;const t=run.pos+s,k=run.en.findIndex(e=>e.i===t);if(k>=0){dgBattle(k);return}
+  run.pos=t;run.st++;const c=run.cells[t];dgMsg="";
+  if(c===">"){const dn=DGN[run.d],f=run.f+1,bonus=f>((state.dg&&state.dg.bf||{})[run.d]||0),g=genFloor(run.seed,f,dn);run.f=f;run.cells=g.cells;run.en=g.en;run.pos=40;run.sn="0".repeat(MN);dgSee();dgMsg=`地下${f}階へ。${f===dn.floors?"最下層…ボスの気配がする。":""}${bonus?` 初回到達ボーナス：基本素材+${DG.reach(f)}`:""}`;saveRun(f);mapView();return}
+  if(c==="C"){const r=DG.chest(run.f);run.bag.basic+=r.basic||0;run.bag.rare+=r.rare||0;run.cells[t]=".";dgMsg=`宝箱！ ${r.basic?`基本素材+${r.basic}`:`希少素材+${r.rare}`}（未確定）`;saveRun()}
+  else if(c==="S"){const dn=DGN[run.d],h=run.f===dn.floors?run.mhp:Math.round(run.mhp*.6);run.hp=Math.min(run.mhp,run.hp+h);run.cells[t]=".";dgMsg=run.f===dn.floors?"⛲ ボス前の泉でHPが全回復した！":"⛲ 回復の泉でHPが回復した。";saveRun()}
+  const hit=dgEnemyTurn();dgSee();if(hit>=0){dgBattle(hit);return}mapView()}
+function dgBattle(k){const en=run.en[k],dn=DGN[run.d],boss=en.t==="B",d=boss?dn.boss:EN[en.t],sc=boss?1:1+DG.esc*(run.f-1),el=dn.el,mx=Math.round(d.hp*sc*(boss?1:dn.hpm));
+  bt={ei:k,code:en.t,n:(el?ELM[el].ic:"")+(boss?"":dn.pre)+d.n,ic:boss?d.ic:dn.icons[en.t],el,wk:el?ELM[WEAK[el]].ic:"",max:mx,hp:mx,atk:Math.round(d.atk*sc*(boss?1:dn.atkm)),cyc:d.c,c2:d.c2,k:0,p2:false,cd:0,h0:run.hp,p0:run.pot,log:`${d.n}が現れた！`};btView()}
 function btUI(){const st=pstat(state),e=bt,cur=e.cyc[e.k],dm=Math.max(1,Math.round(e.atk*cur[1]-st.def));
   return cur[2]==="g"?`🛡 予告：${cur[0]}<br>→ スキルなら貫通できる`:cur[1]>0?`⚠ 予告：${cur[0]}<br>→ 約${dm}ダメージ（防御すれば約${Math.max(1,Math.round(dm*.4))}）`:cur[2]==="h"?`💚 予告：${cur[0]}<br>→ 回復される前に倒そう`:`… 予告：${cur[0]}`}
 function btView(){const e=bt;
-  dgShow(`<div class="dgStage"><div class="dgFoe"><div class="dgNm"><b>${e.n}</b><span id="btEH"></span></div><div class="dgBar e"><i id="btEB"></i></div><div class="dgSprite" id="btEI">${e.ic}</div></div><div class="dgIntent" id="btInt"></div><div class="dgMe"><span class="dgSprite sm" id="btPI">🧍</span><div style="flex:1"><div class="dgRow"><b>あなた</b><span id="btPH"></span></div><div class="dgBar"><i id="btPB"></i></div></div></div></div><div class="dgLog" id="btLog"></div><div class="dgAct"><button class="dgBtn" data-a="atk">⚔ 攻撃</button><button class="dgBtn sub" data-a="df">🛡 防御</button><button class="dgBtn" data-a="sk">✨ スキル</button><button class="dgBtn sub" data-a="it">💊 回復薬</button></div>`);
+  dgShow(`<div class="dgStage"><div class="dgFoe"><div class="dgNm"><b>${e.n}${e.wk?` <small>弱点${e.wk}</small>`:""}</b><span id="btEH"></span></div><div class="dgBar e"><i id="btEB"></i></div><div class="dgSprite" id="btEI">${e.ic}</div></div><div class="dgIntent" id="btInt"></div><div class="dgMe"><span class="dgSprite sm" id="btPI">🧍</span><div style="flex:1"><div class="dgRow"><b>あなた</b><span id="btPH"></span></div><div class="dgBar"><i id="btPB"></i></div></div></div></div><div class="dgLog" id="btLog"></div><div class="dgAct"><button class="dgBtn" data-a="atk">⚔ 攻撃</button><button class="dgBtn sub" data-a="df">🛡 防御</button><button class="dgBtn" data-a="sk">✨ スキル</button><button class="dgBtn sub" data-a="it">💊 回復薬</button></div>`);
   dgOv().querySelector(".dgAct").onclick=ev=>{const b=ev.target.closest("[data-a]");if(b&&!b.disabled)dgAct(b.dataset.a)};btUpdate()}
 function dgPop(id,t,c){const s=$d(id);if(!s)return;const p=document.createElement("span");p.className="dgPop "+(c||"");p.textContent=t;s.appendChild(p);setTimeout(()=>p.remove(),900);if(!c){s.classList.remove("hit");void s.offsetWidth;s.classList.add("hit")}}
 function btUpdate(e0,p0){const e=bt;if(!e||!$d("btEB")){return btView()}
@@ -1374,9 +1396,9 @@ function btUpdate(e0,p0){const e=bt;if(!e||!$d("btEB")){return btView()}
   const sk=dgOv().querySelector('[data-a="sk"]'),it=dgOv().querySelector('[data-a="it"]');sk.disabled=e.cd>0;sk.textContent=e.cd>0?`✨ スキル（あと${e.cd}）`:"✨ スキル";it.disabled=run.pot<1;it.textContent=`💊 回復薬×${run.pot}`;
   if(e0!==undefined){if(e0>e.hp)dgPop("btEI","-"+(e0-e.hp));else if(e0<e.hp)dgPop("btEI","+"+(e.hp-e0),"g");if(p0>run.hp)dgPop("btPI","-"+(p0-run.hp));else if(p0<run.hp)dgPop("btPI","+"+(run.hp-p0),"g")}}
 let dgBusy=false;
-function dgAct(a){if(dgBusy)return;dgBusy=true;setTimeout(()=>dgBusy=false,350);const st=pstat(state),e=bt,cur=e.cyc[e.k],L=[],e0=bt.hp,p0=run.hp;let guard=false;
-  if(a==="atk"){let d=Math.max(1,st.atk);if(cur[2]==="g"){d=Math.max(1,Math.round(d*.3));L.push("硬い！")}e.hp-=d;L.push(`攻撃！ ${d}ダメージ`)}
-  else if(a==="sk"){const d=Math.round(st.atk*DG.skMul*(1+st.sk));e.hp-=d;e.cd=DG.skCd;L.push(`スキル！ ${d}ダメージ（防御を貫通）`)}
+function dgAct(a){if(dgBusy)return;dgBusy=true;setTimeout(()=>dgBusy=false,350);const st=pstat(state),e=bt,cur=e.cyc[e.k],L=[],e0=bt.hp,p0=run.hp,em=dgEl(st.el,e.el);let guard=false;
+  if(a==="atk"){let d=Math.max(1,Math.round(st.atk*em));if(em!==1)L.push(em>1?"弱点をついた！":"相性がいまひとつ…");if(cur[2]==="g"){d=Math.max(1,Math.round(d*.3));L.push("硬い！")}e.hp-=d;L.push(`攻撃！ ${d}ダメージ`)}
+  else if(a==="sk"){const d=Math.round(st.atk*DG.skMul*(1+st.sk)*em);e.hp-=d;e.cd=DG.skCd;L.push(`スキル！ ${d}ダメージ（防御を貫通）`)}
   else if(a==="df"){guard=true;L.push("身を守った")}
   else{const h=Math.round(run.mhp*DG.potHeal*(1+st.pot));run.hp=Math.min(run.mhp,run.hp+h);run.pot--;L.push(`回復薬で${h}回復`)}
   if(e.hp>0){
@@ -1389,15 +1411,14 @@ function dgAct(a){if(dgBusy)return;dgBusy=true;setTimeout(()=>dgBusy=false,350);
   e.k=(e.k+1)%e.cyc.length;if(e.cd>0)e.cd--;
   if(e.c2&&!e.p2&&e.hp<=e.max/2){e.p2=true;e.cyc=e.c2;e.k=0;L.push("番人の様子が変わった！")}
   e.log=L.join("\n");btUpdate(e0,p0)}
-function dgWin(L){const e=bt,d=DG.drop(run.f);bt=null;run.cells[e.i]=".";run.pos=e.i;
+function dgWin(L){const e=bt,d=DG.drop(run.f),ent=run.en[e.ei];bt=null;run.pos=ent.i;run.en.splice(e.ei,1);
   if(e.code==="B"){dgFinish(true,"");return}
-  run.bag.basic+=d;dgMsg=L.join("\n")+`\n${e.n}を倒した！ 基本素材+${d}（未確定）`;saveRun();mapView()}
-
-async function dgFinish(win,text){await dgSaving;const r=run;let b=0,first=false,lost=r.bag;
-  try{await updateCloud(s=>{dgEns(s);if(win){first=s.dg.clears===0;b=DG.bossDrop+(first?DG.firstClear:0);s.gm.basic+=r.bag.basic;s.gm.rare+=r.bag.rare;s.gm.boss+=b;s.dg.clears++}s.run=null;return s})}
+  run.bag.basic+=d;dgMsg=L.join("\n")+`\n${e.n}を倒した！ 基本素材+${d}（未確定）`;saveRun();dgSee();mapView()}
+async function dgFinish(win,text){await dgSaving;const r=run;let b=0,bs=0,first=false,lost=r.bag;
+  try{await updateCloud(s=>{dgEns(s);if(win){first=!(s.dg.cl[r.d]>0);b=DG.bossDrop+(first?DG.firstClear:0);bs=1+(first?1:0);s.gm.basic+=r.bag.basic;s.gm.rare+=r.bag.rare;s.gm.boss+=b;s.gm.bs[r.d]=(s.gm.bs[r.d]||0)+bs;s.dg.cl[r.d]=(+s.dg.cl[r.d]||0)+1;s.dg.clears++}s.run=null;return s})}
   catch(e){console.error(e);errModal("保存できませんでした","通信状態を確認してもう一度お試しください。");return}
   run=null;bt=null;
-  dgShow(win?`<h2>🏆 ダンジョン制覇！</h2><div class="dgG">確定した素材<br><b>基本素材 +${r.bag.basic}／希少素材 +${r.bag.rare}／ボス素材 +${b}</b>${first?"<br><small>初回撃破ボーナス込み</small>":""}</div>`:`<h2>${text}</h2><div class="dgG">失った未確定素材：基本 ${lost.basic}／希少 ${lost.rare}<br><small>装備・確定済みの素材・到達記録は残っています。</small></div>`);
+  dgShow(win?`<h2>🏆 ダンジョン制覇！</h2><div class="dgG">確定した素材<br><b>基本素材 +${r.bag.basic}／希少素材 +${r.bag.rare}／ボス素材 +${b}／${DGN[r.d].matIc}${DGN[r.d].mat} +${bs}</b>${first?"<br><small>初回撃破ボーナス込み</small>":""}</div>`:`<h2>${text}</h2><div class="dgG">失った未確定素材：基本 ${lost.basic}／希少 ${lost.rare}<br><small>装備・確定済みの素材・到達記録は残っています。</small></div>`);
   dgOv().firstChild.insertAdjacentHTML("beforeend",`<button class="dgBtn" id="dgHome" style="width:100%">ホームへ戻る</button>`);$d("dgHome").onclick=dgClose}
 
 /* --- 装備・強化 --- */
@@ -1446,20 +1467,21 @@ $d("admin").addEventListener("click",async e=>{const b=e.target.closest("[data-d
 
 /* --- もちもの（素材・装備図鑑）とクラフト --- */
 const DG_CL={basic:"基本素材",rare:"希少素材",boss:"ボス素材"};
-const DG_CR=[{id:"pot",ic:"🧪",n:"携帯回復薬",d:"次の探索に回復薬を+1個持ち込み（最大3個まで）",c:{basic:12}},{id:"SR",ic:"⚒",n:"SR装備をつくる",d:"好きなSR装備を1つ選んで作成",c:{rare:8},r:"SR"},{id:"SSR",ic:"🔨",n:"SSR装備をつくる",d:"好きなSSR装備を1つ選んで作成",c:{rare:16,boss:2},r:"SSR"},{id:"UR",ic:"👑",n:"UR装備をつくる",d:"好きなUR装備を1つ選んで作成",c:{rare:30,boss:6},r:"UR"}];
+const DG_CR=[{id:"pot",ic:"🧪",n:"携帯回復薬",d:"次の探索に回復薬を+1個持ち込み（最大3個まで）",c:{basic:12}},{id:"SR",ic:"⚒",n:"SR装備をつくる",d:"好きなSR装備を1つ選んで作成",c:{rare:8},r:"SR"},{id:"SSR",ic:"🔨",n:"SSR装備をつくる",d:"好きなSSR装備を1つ選んで作成",c:{rare:16,boss:2},r:"SSR"},{id:"bw1",ic:"🌿",n:"樹根の大槌（木属性）",d:"岩核で作る木属性の武器。水の敵に強い",c:{bs_d1:3,rare:4,basic:20},g:"w5"},{id:"bw2",ic:"🔥",n:"炎竜の剣（炎属性）",d:"竜の炎核で作る炎属性の武器。木の敵に強い",c:{bs_d2:3,rare:6,basic:30},g:"w6"},{id:"bw3",ic:"💧",n:"蒼海の槍（水属性）",d:"蒼鱗で作る水属性の武器。炎の敵に強い",c:{bs_d3:3,rare:6,basic:30},g:"w7"},{id:"UR",ic:"👑",n:"UR装備をつくる",d:"好きなUR装備を1つ選んで作成",c:{rare:30,boss:6},r:"UR"}];
 let dgDet=null,dgMode="inv",dgBound=false;
-const dgOk=(s,c)=>Object.entries(c).every(([k,v])=>(s.gm[k]||0)>=v);
+const dgHas=(s,k)=>k.startsWith("bs_")?((s.gm.bs||{})[k.slice(3)]||0):(s.gm[k]||0),dgSub=(s,k,v)=>{if(k.startsWith("bs_"))s.gm.bs[k.slice(3)]-=v;else s.gm[k]-=v};
+const dgOk=(s,c)=>Object.entries(c).every(([k,v])=>dgHas(s,k)>=v);
 function dgInvHtml(){const s=state,g=s.gm,n=GEAR.filter(x=>dgOwned(s,x.id)).length;
-  return `<div class="dgChips"><span>🪨 基本<br><b>${g.basic}</b></span><span>💎 希少<br><b>${g.rare}</b></span><span>👑 ボス<br><b>${g.boss}</b></span></div><div class="dgSub">🧪 持ち込み回復薬 ${s.extraPot||0}個／⚡ ${Math.floor(s.energy||0)}</div><h3>装備図鑑 ${n}/${GEAR.length}</h3>${GEAR.map(x=>{const o=dgOwned(s,x.id);return `<div class="dgG" style="${o?"":"opacity:.55"}"><span class="rarityBadgeSmall ${x.r.toLowerCase()}">${x.r}</span> <b>${o?x.name:"？？？？"}</b> ${o?`Lv${(s.lv||{})[x.id]||0} ${"★".repeat((s.star||{})[x.id]||0)}`:"🔒"}<br><small>${SLN[x.sl]}${o?" ／ "+dgTxt(s,x):""}</small></div>`}).join("")}<button class="dgBtn" data-p="gear" style="width:100%;margin:8px 0 90px">🎒 装備・強化へ</button>`}
-function dgCraftHtml(){const s=state,cost=c=>Object.entries(c).map(([k,v])=>`${DG_CL[k]}${v}`).join("＋");
-  return `<div class="dgSub">素材を使って、ほしいものを作れます。</div>`+DG_CR.map(r=>`<div class="dgG"><b>${r.ic} ${r.n}</b><br><small>${r.d}</small><div class="dgRow"><small>必要：${cost(r.c)}</small><button class="dgBtn sub" data-p="cr" data-id="${r.id}" ${dgOk(s,r.c)&&!(r.id==="pot"&&(s.extraPot||0)>=3)?"":"disabled"} style="flex:none">作る</button></div></div>`).join("")+`<div id="crPick" style="margin-bottom:90px"></div>`}
+  return `<div class="dgChips"><span>🪨 基本<br><b>${g.basic}</b></span><span>💎 希少<br><b>${g.rare}</b></span><span>👑 ボス<br><b>${g.boss}</b></span></div><div class="dgSub">${Object.values(DGN).map(n=>`${n.matIc}${n.mat} ${((g.bs||{})[n.id])||0}`).join("／")}</div><div class="dgSub">🧪 持ち込み回復薬 ${s.extraPot||0}個／⚡ ${Math.floor(s.energy||0)}</div><h3>装備図鑑 ${n}/${GEAR.length}</h3>${GEAR.map(x=>{const o=dgOwned(s,x.id);return `<div class="dgG" style="${o?"":"opacity:.55"}"><span class="rarityBadgeSmall ${x.r.toLowerCase()}">${x.r}</span> <b>${o?x.name:"？？？？"}</b> ${o?`Lv${(s.lv||{})[x.id]||0} ${"★".repeat((s.star||{})[x.id]||0)}`:"🔒"}<br><small>${SLN[x.sl]}${o?" ／ "+dgTxt(s,x):""}</small></div>`}).join("")}<button class="dgBtn" data-p="gear" style="width:100%;margin:8px 0 90px">🎒 装備・強化へ</button>`}
+function dgCraftHtml(){const s=state,cost=c=>Object.entries(c).map(([k,v])=>`${DG_CL[k]||(k.startsWith("bs_")?DGN[k.slice(3)].mat:k)}${v}`).join("＋");
+  return `<div class="dgSub">素材を使って、ほしいものを作れます。</div>`+DG_CR.map(r=>`<div class="dgG"><b>${r.ic} ${r.n}</b><br><small>${r.d}</small><div class="dgRow"><small>必要：${cost(r.c)}</small><button class="dgBtn sub" data-p="cr" data-id="${r.id}" ${dgOk(s,r.c)&&!(r.id==="pot"&&(s.extraPot||0)>=3)&&!(r.g&&dgOwned(s,r.g))?"":"disabled"} style="flex:none">作る</button></div></div>`).join("")+`<div id="crPick" style="margin-bottom:90px"></div>`}
 window.dgPanel=function(det,mode){dgDet=det;dgMode=mode;det.classList.add("open");det.innerHTML=mode==="inv"?dgInvHtml():dgCraftHtml();
   if(!dgBound){dgBound=true;det.addEventListener("click",async e=>{const b=e.target.closest("[data-p]");if(!b||b.disabled||!(dgMode==="inv"||dgMode==="craft"))return;const p=b.dataset.p,id=b.dataset.id;
     if(p==="gear"){gearView();return}
     if(p==="cr"){const r=DG_CR.find(x=>x.id===id);
-      if(!r.r){try{await updateCloud(s=>{dgEns(s);if(!dgOk(s,r.c)||(s.extraPot||0)>=3)throw new Error("X");for(const k in r.c)s.gm[k]-=r.c[k];s.extraPot=(s.extraPot||0)+1;return s})}catch(x){}window.dgPanel(dgDet,dgMode);return}
+      if(!r.r){try{await updateCloud(s=>{dgEns(s);if(!dgOk(s,r.c)||(r.g?dgOwned(s,r.g):(s.extraPot||0)>=3))throw new Error("X");for(const k in r.c)dgSub(s,k,r.c[k]);if(r.g)s.gear[r.g]=1;else s.extraPot=(s.extraPot||0)+1;return s})}catch(x){}window.dgPanel(dgDet,dgMode);return}
       const L=GEAR.filter(x=>x.r===r.r&&!dgOwned(state,x.id));$d("crPick").innerHTML=L.length?`<h3>${r.n}：どれを作る？</h3>`+L.map(x=>`<div class="dgG"><span class="rarityBadgeSmall ${x.r.toLowerCase()}">${x.r}</span> <b>${x.name}</b><br><small>${SLN[x.sl]} ／ ${dgTxt(state,x)}</small><button class="dgBtn" data-p="mk" data-id="${r.id}" data-g="${x.id}" style="width:100%;margin-top:8px">これを作る</button></div>`).join(""):`<div class="dgSub">この等級の装備はすべて持っています。</div>`;return}
-    if(p==="mk"){const r=DG_CR.find(x=>x.id===id),gid=b.dataset.g;try{await updateCloud(s=>{dgEns(s);if(!dgOk(s,r.c)||dgOwned(s,gid))throw new Error("X");for(const k in r.c)s.gm[k]-=r.c[k];s.gear[gid]=1;return s})}catch(x){}window.dgPanel(dgDet,dgMode)}})}};
+    if(p==="mk"){const r=DG_CR.find(x=>x.id===id),gid=b.dataset.g;try{await updateCloud(s=>{dgEns(s);if(!dgOk(s,r.c)||dgOwned(s,gid))throw new Error("X");for(const k in r.c)dgSub(s,k,r.c[k]);s.gear[gid]=1;return s})}catch(x){}window.dgPanel(dgDet,dgMode)}})}};
 </script>
 <div id="authGate" class="show"><div class="gBox"><p>読み込み中…</p></div></div>
 <script>
