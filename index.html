@@ -239,7 +239,7 @@ body.pg-home .detail{display:none!important}
 
   <section class="card missions" id="missionCard"></section>
 
-  <section class="card" id="rwCard"><div class="dgRow"><b>🎁 ごほうび</b><small style="color:#5b6577">現実のごほうびを受け取る</small></div><div class="dgRow" style="margin-top:8px;flex-wrap:nowrap"><button class="dgBtn" data-rw="rw">🎁 ごほうびBOX</button><button class="dgBtn sub" data-rw="rx">🧩 素材・交換所</button></div></section>
+  <section class="card" id="rwCard"><div class="dgRow"><b>🎁 ごほうび</b><small style="color:#5b6577">現実のごほうびを受け取る</small></div><div class="dgRow" style="margin-top:8px;flex-wrap:nowrap"><button class="dgBtn" data-rw="rw">🎁 BOX</button><button class="dgBtn" data-rw="rg">🎰 がちゃ</button><button class="dgBtn sub" data-rw="rx">🧩 交換</button></div></section>
 
   <section class="card" id="dgCard"></section>
 
@@ -323,7 +323,7 @@ const defaults={tickets:0,todayStudy:0,totalStudy:0,lastStudyDate:"",history:[],
 const PALETTE=["#3975c8","#c93434","#d59b18","#2e9d6b","#7953a6","#e07a3a","#16a3b8","#8b9198"];
 const DEFAULT_CATS=["宅建業法","権利関係","法令上の制限","税・その他","過去問演習","模試"].map((n,i)=>({id:"c"+(i+1),name:n,color:PALETTE[i]}));
 Object.assign(defaults,{categories:structuredClone(DEFAULT_CATS),studyDays:{},studyLog:[],carryMin:0,goalDaily:60,goalWeekly:420,missionCfg:{t1:1,t2:1,t3:2,tb:2,bonusReward:"",bonusRarity:"SR"},missionClaims:{},presets:[]});
-Object.assign(defaults,{energy:3,gm:{basic:0,rare:0,boss:0},gear:{},eq:{},lv:{},star:{},run:null,dg:{best:0,clears:0},dgCfg:{},extraPot:0});
+Object.assign(defaults,{energy:3,gm:{basic:0,rare:0,boss:0},gear:{},eq:{},lv:{},star:{},run:null,dg:{best:0,clears:0},dgCfg:{},extraPot:0,rwCfg:{rules:[],minWeek:0,minDay:0},rgCfg:{},wkLock:null,rw:{wk:"",g:{},dg:{}}});
 const rowObj=a=>({rarity:a[0],reward:a[1],probability:a[2],materialId:a[3],materialQty:a[4]});
 const DK=/^\d{4}-\d{2}-\d{2}$/;
 function normalizeState(s){
@@ -568,6 +568,7 @@ function openStudyModal(){
         const day=(s.studyDays[d]=s.studyDays[d]||{});day[cat]=(day[cat]||0)+mins;
         s.studyLog.push({id:makeId("sl"),dk:d,cat,min:mins,t:Date.now(),gain});
         if(s.studyLog.length>80)s.studyLog.splice(0,s.studyLog.length-80);
+        rwCheck(s);
         return s;
       });
       const can=missionList(state,todayKey()).some(m=>m.done&&!m.claimed);
@@ -1007,7 +1008,11 @@ document.getElementById("detail").addEventListener("click",async e=>{
     if(a==="range"){statRange=Number(b.dataset.v);showStats()}
     else if(a==="goalSave"){
       const d=Math.max(0,Math.floor(+document.getElementById("gDaily").value||0)),w=Math.max(0,Math.round((+document.getElementById("gWeekly").value||0)*60));
-      await updateCloud(s=>{s.goalDaily=Math.min(1440,d);s.goalWeekly=Math.min(10080,w);return s});
+      const wk0=rwDays(state)[0],c0=state.rwCfg||{};
+      if(state.wkLock&&state.wkLock.wk===wk0){errModal("今週の目標は変更できません","目標は1週間に一度だけ決められます。来週からまた決められます。");return}
+      if(w<(c0.minWeek||0)||d<(c0.minDay||0)){errModal("目標が低すぎます",`週の目標は${Math.ceil((c0.minWeek||0)/60)}時間以上、日の目標は${c0.minDay||0}分以上にしてください。`);return}
+      if(!confirm("今週の目標を決定します。来週まで変更できません。よろしいですか？"))return;
+      await updateCloud(s=>{const k=rwDays(s)[0];if(s.wkLock&&s.wkLock.wk===k)throw new Error("LOCK");s.goalDaily=Math.min(1440,d);s.goalWeekly=Math.min(10080,w);s.wkLock={wk:k,d:s.goalDaily,w:s.goalWeekly};return s});
       showStats();const nb=document.querySelector('[data-act="goalSave"]');if(nb)nb.textContent="✓ 保存";
     }
     else if(a==="catAdd"){
@@ -1109,7 +1114,7 @@ const INITIAL_ACCOUNT={id:"takken",password:"takken1234",name:"メイン"};    /
 const ADMIN_EMAIL="admin@takken-gacha.app",MAIL_DOMAIN="takken-gacha.app",PREVIEW_ID="admin-preview",RESERVED=["admin",PREVIEW_ID];
 const DATA_COLLECTIONS={shared:"devShared",user:"devData",ids:"devIds",legacy:"devState"};   // 本番では legacy を "state" に
 const SHARED_REF=doc(db,DATA_COLLECTIONS.shared,"main");
-const SH_KEYS=["tables","gachas","materials","exchangeShop","examDate","resetTime","missionCfg","presets","gachaPassword","dgCfg"];
+const SH_KEYS=["tables","gachas","materials","exchangeShop","examDate","resetTime","missionCfg","presets","gachaPassword","dgCfg","rwCfg","rgCfg"];
 const auth=getAuth(app),authGate=document.getElementById("authGate"),lcs=s=>String(s||"").toLowerCase(),$v=id=>document.getElementById(id).value;
 let me=null,isOwner=false,authStarted=false,regBusy=false,pendingMsg="",ACTIVE_ID="",ACTIVE_NAME="";
 const userRef=()=>doc(db,DATA_COLLECTIONS.user,ACTIVE_ID),userRefFor=id=>doc(db,DATA_COLLECTIONS.user,id),idRef=id=>doc(db,DATA_COLLECTIONS.ids,id);
@@ -1358,7 +1363,7 @@ function dgRender(){const el=$d("dgCard");if(!el||!state||!state.gm)return;const
   el.innerHTML=`<div class="dgHero"><div><div class="dgHT">⚔ ダンジョン</div><div class="dgSub">${r0?"探索の途中です":e>=DG.cost?`行き先を選ぼう（⚡${DG.cost}で出発）`:`あと⚡${DG.cost-e}で出発できます`}</div></div><div class="dgEn">⚡<b>${e}</b></div></div>${r0?`<button class="dgBtn" id="dgGo" style="width:100%;margin-top:8px">▶ ${DGN[r0.d]?DGN[r0.d].n:""} 地下${r0.f}階から再開</button>`:""}${list}<button class="dgBtn sub" id="dgGear" style="width:100%;margin-top:10px">🎒 もちもの・装備</button>`;
   el.onclick=ev=>{const g=ev.target.closest("[data-go]");if(g){if(!g.disabled)dgEnter(g.dataset.go);return}const t=ev.target.closest("[data-tg]");if(t){dgOpenD=dgOpenD===t.dataset.tg?"":t.dataset.tg;dgRender()}};
   if($d("dgGo"))$d("dgGo").onclick=()=>dgEnter();$d("dgGear").onclick=()=>{dgTab="w";window.dgGo&&window.dgGo("box")};}
-const _render=render;render=function(){dgApply();_render();dgRender()};
+const _render=render;render=function(){dgApply();_render();dgRender();rwRender()};
 
 function saveRun(reach){if(!run)return dgSaving;const r=clone(run);if(bt){r.hp=bt.h0;r.pot=bt.p0}
   dgSaving=dgSaving.then(()=>updateCloud(s=>{dgEns(s);s.run=r;if(reach&&reach>(s.dg.bf[r.d]||0)){s.dg.bf[r.d]=reach;s.dg.best=Math.max(s.dg.best,reach);s.gm.basic+=DG.reach(reach)}return s})).catch(console.error);return dgSaving}
@@ -1430,7 +1435,7 @@ async function dgFinish(win,text){await dgSaving;const r=run;const lost=r.bag;
   try{await updateCloud(s=>{dgEns(s);s.run=null;return s})}catch(e){console.error(e);errModal("保存できませんでした","通信状態を確認してもう一度お試しください。");return}
   run=null;bt=null;dgShow(`<h2>${text}</h2><div class="dgG">失った未確定素材：基本 ${lost.basic}／希少 ${lost.rare}<br><small>確定済みの素材・装備・到達記録は残っています。</small></div><button class="dgBtn" id="dgHome" style="width:100%">ホームへ戻る</button>`,1);$d("dgHome").onclick=dgClose}
 async function dgBossClear(){await dgSaving;const dn=DGN[run.d],got=run.bag;let b=0,bs=0,first=false;run.bag={basic:0,rare:0};const r=clone(run);
-  try{await updateCloud(s=>{dgEns(s);first=!(s.dg.cl[r.d]>0);b=DG.bossDrop+(first?DG.firstClear:0);bs=1+(first?1:0);s.gm.basic+=got.basic;s.gm.rare+=got.rare;for(const k in got.sh||{})s.gm.sh[k]=(s.gm.sh[k]||0)+got.sh[k];s.gm.boss+=b;s.gm.bs[r.d]=(s.gm.bs[r.d]||0)+bs;s.dg.cl[r.d]=(+s.dg.cl[r.d]||0)+1;s.dg.clears++;s.dg.bf[r.d]=Math.max(s.dg.bf[r.d]||0,r.f);s.run=r;return s})}
+  try{await updateCloud(s=>{dgEns(s);first=!(s.dg.cl[r.d]>0);b=DG.bossDrop+(first?DG.firstClear:0);bs=1+(first?1:0);s.gm.basic+=got.basic;s.gm.rare+=got.rare;for(const k in got.sh||{})s.gm.sh[k]=(s.gm.sh[k]||0)+got.sh[k];s.gm.boss+=b;s.gm.bs[r.d]=(s.gm.bs[r.d]||0)+bs;s.dg.cl[r.d]=(+s.dg.cl[r.d]||0)+1;s.dg.clears++;s.dg.bf[r.d]=Math.max(s.dg.bf[r.d]||0,r.f);rwCheck(s,{d:r.d,f:r.f});s.run=r;return s})}
   catch(e){console.error(e);run.bag=got;errModal("保存できませんでした","通信状態を確認してもう一度お試しください。");return}
   const deep=run.f<DG.maxDepth;
   dgShow(`<h2>🏆 地下${run.f}階のボスを撃破！</h2><div class="dgG">確定した素材<br><b>基本 +${got.basic}／希少 +${got.rare}${Object.entries(got.sh||{}).map(([k,v])=>`／${ELM[k].ic}晶+${v}`).join("")}／ボスの欠片 +${b}／${dn.matIc}${dn.mat} +${bs}</b>${first?"<br><small>初回撃破ボーナス込み</small>":""}</div><div class="dgG"><small>${deep?"さらに深層へ進めます。深いほど敵は強くなります。やられると、ここから先で集めた未確定の素材だけを失います。":"最深部に到達しました！"}</small></div>${deep?`<button class="dgBtn" id="dgDeep" style="width:100%">⬇ 深層へ進む（地下${run.f+1}階〜）</button>`:""}<button class="dgBtn sub" id="dgRet" style="width:100%;margin-top:8px">🏠 帰還する</button>`,1);
@@ -1514,21 +1519,53 @@ function dgCraftHtml(){const s=state,cost=c=>Object.entries(c).map(([k,v])=>`${D
     return `<div class="dgG"><div class="dgRow" style="flex-wrap:nowrap"><div style="flex:1"><b>${r.ic} ${r.n}</b><br><small>${r.d}<br>必要：${cost(r.c)}</small></div><button class="dgBtn ${can?"":"sub"}" data-p="cr" data-id="${r.id}" ${can?"":"disabled"} style="flex:none;padding:10px 16px">${r.g&&dgOwned(s,r.g)?"作成済":"作る"}</button></div>${dgOpenR===r.id?`<div class="dgPick">${L.length?L.map(x=>`<div class="dgG"><span class="rarityBadgeSmall ${x.r.toLowerCase()}">${x.r}</span> <b>${x.name}</b><br><small>${dgTxt(s,x)}</small><button class="dgBtn" data-p="mk" data-id="${r.id}" data-g="${x.id}" style="width:100%;margin-top:6px">これを作る</button></div>`).join(""):"<small>この等級の装備はすべて持っています。</small>"}</div>`:""}</div>`};
   const sec=(t,k)=>`<h3 class="dgH">${t}</h3>`+DG_CR.filter(r=>r.s===k).map(row).join("");
   return (dgCrMsg?`<div class="dgToast">✔ ${dgCrMsg}</div>`:"")+`<div class="dgSub">🪨 ${s.gm.basic}　💎 ${s.gm.rare}　👑 ${s.gm.boss}　${Object.values(DGN).map(n=>n.matIc+((s.gm.bs||{})[n.id]||0)).join(" ")}<br>${Object.keys(ELM).map(k=>ELM[k].ic+((s.gm.sh||{})[k]||0)).join(" ")}</div>`+sec("ボス専用装備","b")+sec("属性装備（属性晶で作る）","s")+sec("装備を選んで作る","e")+sec("アイテム","i")}
-window.dgPanel=function(det,mode){dgDet=det;dgMode=mode;det.classList.add("open");det.innerHTML=mode==="inv"?dgInvHtml():dgCraftHtml();
-  if(!dgBound){dgBound=true;det.addEventListener("click",async e=>{const b=e.target.closest("[data-p]");if(!b||b.disabled||!(dgMode==="inv"||dgMode==="craft"))return;const p=b.dataset.p,id=b.dataset.id;
-    if(p==="tab"){dgTab=id;dgOpenG=""}else if(p==="all"){dgAll=id==="1";dgOpenG=""}else if(p==="open")dgOpenG=dgOpenG===id?"":id;
+window.dgPanel=function(det,mode){dgDet=det;dgMode=mode;det.classList.add("open");det.innerHTML=mode==="inv"?dgInvHtml():mode==="rg"?dgRgHtml():dgCraftHtml();
+  if(!dgBound){dgBound=true;det.addEventListener("click",async e=>{const b=e.target.closest("[data-p]");if(!b||b.disabled||!(dgMode==="inv"||dgMode==="craft"||dgMode==="rg"))return;const p=b.dataset.p,id=b.dataset.id;
+    if(p==="tab"){dgTab=id;dgOpenG=""}else if(p==="all"){dgAll=id==="1";dgOpenG=""}else if(p==="rg1"||p==="rg10")await rgDraw(p==="rg1"?1:10);else if(p==="open")dgOpenG=dgOpenG===id?"":id;
     else if(p==="eq")await dgUp(t=>{if(t.run)throw new Error("X");t.eq[GM[id].sl]=id});
     else if(p==="en")await dgUp(t=>{const l=t.lv[id]||0,c=DG.lvCost(l);if(l>=DG.lvMax||t.gm.basic<c)throw new Error("X");t.gm.basic-=c;t.lv[id]=l+1});
     else if(p==="ev")await dgUp(t=>{const r=t.star[id]||0;if(r>=DG.starMax||t.gm.boss<DG.starBoss[r]||t.gm.rare<DG.starRare[r])throw new Error("X");t.gm.boss-=DG.starBoss[r];t.gm.rare-=DG.starRare[r];t.star[id]=r+1});
     else if(p==="cr"){const r=DG_CR.find(x=>x.id===id);dgCrMsg="";if(r.r)dgOpenR=dgOpenR===id?"":id;else if(await dgUp(t=>{if(!dgOk(t,r.c)||(r.g?dgOwned(t,r.g):(t.extraPot||0)>=3))throw new Error("X");for(const k in r.c)dgSub(t,k,r.c[k]);if(r.g)t.gear[r.g]=1;else t.extraPot=(t.extraPot||0)+1}))dgCrMsg=`${r.n.replace(/（.*/,"")}を作成しました！`}
     else if(p==="mk"){const r=DG_CR.find(x=>x.id===id),gid=b.dataset.g;if(await dgUp(t=>{if(!dgOk(t,r.c)||dgOwned(t,gid))throw new Error("X");for(const k in r.c)dgSub(t,k,r.c[k]);t.gear[gid]=1})){dgCrMsg=`${GM[gid].name}を作成しました！`;dgOpenR=""}}
     dgRe()})}};
+
+/* --- 現実のごほうび：週間目標・日の積み重ね・ダンジョン階層・ごほうびがちゃ --- */
+function rwDays(s){const t=studyDateKey(new Date(),s.resetTime),b=new Date(t+"T00:00:00Z"),n=(b.getUTCDay()+6)%7+1;return Array.from({length:n},(_,i)=>{const d=new Date(b);d.setUTCDate(d.getUTCDate()-(n-1-i));return d.toISOString().slice(0,10)})}
+function rwMet(s){const days=rwDays(s),wk=days[0],lock=s.wkLock&&s.wkLock.wk===wk?s.wkLock:null,tot=k=>Object.values((s.studyDays||{})[k]||{}).reduce((a,b)=>a+b,0),sum=days.reduce((a,k)=>a+tot(k),0),dd=lock?days.filter(k=>lock.d>0&&tot(k)>=lock.d).length:0,rw=s.rw&&s.rw.wk===wk?s.rw:{wk,g:{},dg:{}};return{wk,lock,sum,dd,rw}}
+function rwCheck(s,ev){const m=rwMet(s);s.rw=m.rw;if(!s.rw.g)s.rw.g={};if(!s.rw.dg)s.rw.dg={};if(ev)s.rw.dg[ev.d]=Math.max(s.rw.dg[ev.d]||0,ev.f);
+  for(const r of ((s.rwCfg||{}).rules||[])){if(!r.txt||!r.type||s.rw.g[r.id])continue;const v=+r.val||1;
+    const ok=r.type==="wk"?!!(m.lock&&m.lock.w>0&&m.sum>=m.lock.w):r.type==="dd"?m.dd>=v:r.type==="dg"?(s.rw.dg[r.d]||0)>=v:false;
+    if(ok){s.rw.g[r.id]=1;s.rewards.push({id:makeId("rew"),time:new Date().toLocaleString("ja-JP"),dateKey:studyDateKey(new Date(),s.resetTime),type:"mission",sourceType:"mission",sourceName:"ごほうび条件",gachaName:"",rarity:r.rar||"R",reward:String(r.txt).slice(0,20),materialId:"",materialQty:0,used:false})}}}
+const rwTxt=r=>r.type==="wk"?"今週の目標を達成":r.type==="dd"?`日の目標を週${+r.val||1}日達成`:`${DGN[r.d]?DGN[r.d].n:""} 地下${+r.val||1}階のボスを撃破`;
+function rwRender(){const el=$d("rwCard");if(!el||!state||!state.studyDays)return;const m=rwMet(state),L=((state.rwCfg||{}).rules||[]).filter(r=>r.txt&&r.type);
+  const gl=m.lock?`🔒 今週の目標 ${m.lock.w}分／日${m.lock.d}分`:`今週の目標は未設定`;
+  const rows=L.map(r=>{const done=m.rw.g[r.id],v=+r.val||1,pg=r.type==="wk"?`${m.sum}/${m.lock?m.lock.w:"—"}分`:r.type==="dd"?`${m.dd}/${v}日`:`${m.rw.dg[r.d]||0}/${v}階`;return `<div class="dgGi" style="${done?"opacity:.6":""}"><span>${done?"✔":"🎯"}</span><div style="flex:1"><b>${escapeHtml(r.txt)}</b><br><small>${rwTxt(r)}</small></div><small>${done?"達成":pg}</small></div>`}).join("");
+  el.innerHTML=`<div class="dgRow"><b>🎁 ごほうび</b><small style="color:#5b6577">${gl}</small></div>${m.lock?"":`<button class="dgBtn sub" data-rw="study" style="width:100%;margin-top:8px">🎯 今週の目標を決める</button>`}${rows}<div class="dgRow" style="margin-top:8px;flex-wrap:nowrap"><button class="dgBtn" data-rw="rw">🎁 BOX</button><button class="dgBtn" data-rw="rg">🎰 がちゃ</button><button class="dgBtn sub" data-rw="rx">🧩 交換</button></div>`}
+const rgCfg=s=>{const c=(s&&s.rgCfg)||{},P=[60,25,10,4,1];return{name:String(c.name||"ごほうびがちゃ").slice(0,20),cost:Math.max(1,Math.floor(+c.cost||1)),rows:Array.from({length:5},(_,i)=>{const r=(c.rows||[])[i]||{};return{p:Number.isFinite(+r.p)&&+r.p>=0&&r.p!==""?+r.p:P[i],txt:String(r.txt||"").slice(0,20)}})}};
+function dgRgHtml(){const c=rgCfg(state),sum=c.rows.reduce((a,r)=>a+r.p,0)||1,any=c.rows.some(r=>r.txt);
+  return `<div class="dgHero"><div><div class="dgHT">🎰 ${escapeHtml(c.name)}</div><div class="dgSub">現実のごほうびが当たる！</div></div><div class="dgEn">🎫<b>${state.tickets}</b></div></div><div class="dgRow" style="margin:10px 0;flex-wrap:nowrap"><button class="dgBtn" data-p="rg1" ${state.tickets<c.cost?"disabled":""}>1回（🎫${c.cost}）</button><button class="dgBtn" data-p="rg10" ${state.tickets<c.cost*10?"disabled":""}>10回+1（🎫${c.cost*10}）</button></div>`+c.rows.map((r,i)=>`<div class="dgGi"><span class="rarityBadgeSmall ${DG_RK[i].toLowerCase()}">${DG_RK[i]}</span><b style="flex:1">${r.txt?escapeHtml(r.txt):"<small>はずれ</small>"}</b><small>${(r.p/sum*100).toFixed(1)}%</small></div>`).join("")+`<div class="dgSub">${any?"当たりは「ごほうびBOX」に入ります。":"ごほうびはまだ設定されていません。"}</div>`}
+async function rgDraw(n){const c=rgCfg(state),need=c.cost*n,total=n===10?11:1;let res=[];
+  try{await updateCloud(s=>{if(s.tickets<need)throw new Error("X");s.tickets-=need;res=[];const rows=rgCfg(s).rows,sum=rows.reduce((a,r)=>a+r.p,0)||1;
+    for(let i=0;i<total;i++){let x=Math.random()*sum,k=0;for(;k<4&&x>=rows[k].p;k++)x-=rows[k].p;res.push({k,txt:rows[k].txt});if(rows[k].txt)s.rewards.push({id:makeId("rew"),time:new Date().toLocaleString("ja-JP"),dateKey:studyDateKey(new Date(),s.resetTime),type:"mission",sourceType:"mission",sourceName:rgCfg(s).name,gachaName:"",rarity:DG_RK[k],reward:rows[k].txt,materialId:"",materialQty:0,used:false})}return s})}
+  catch(e){errModal("引けません","ガチャ券が足りないか、状態が変わっています。");return}
+  openModal(`<h2>🎰 結果</h2>${res.map(r=>`<div class="dgGi"><span class="rarityBadgeSmall ${DG_RK[r.k].toLowerCase()}">${DG_RK[r.k]}</span><b style="flex:1">${r.txt?escapeHtml(r.txt):"<small>はずれ</small>"}</b></div>`).join("")}<p class="dgSub">当たりは「ごほうびBOX」に入りました。</p><button class="singleBtn" id="modalCloseBtn">OK</button>`)}
+function rwAdminHtml(){const c=state.rwCfg||{},g=rgCfg(state),R=c.rules||[],inp=(id,l,v,t="number")=>`<div><label>${l}</label><input id="${id}" type="${t}" min="0" value="${escapeHtml(String(v))}"></div>`;
+  const opt=(a,v)=>a.map(([k,t])=>`<option value="${k}" ${v===k?"selected":""}>${t}</option>`).join("");
+  const rules=Array.from({length:8},(_,i)=>{const r=R.find(x=>x.id==="r"+i)||{};return `<div class="adminGrid" style="border-top:1px solid #dde4f5;padding-top:8px"><div><label>条件${i+1}</label><select id="rwT${i}">${opt([["","（使わない）"],["wk","週の目標を達成"],["dd","日の目標を週◯日達成"],["dg","ダンジョンで◯階のボスを撃破"]],r.type||"")}</select></div>${inp("rwV"+i,"数（日数／階）",r.val||"")}<div><label>ダンジョン（撃破条件のとき）</label><select id="rwD${i}">${opt(Object.values(DGN).map(n=>[n.id,n.n]),r.d||"d1")}</select></div>${inp("rwX"+i,"ごほうび（20字まで）",r.txt||"","text")}<div><label>レア表示</label><select id="rwR${i}">${opt(DG_RK.map(x=>[x,x]),r.rar||"R")}</select></div></div>`}).join("");
+  const rows=g.rows.map((r,i)=>`<div class="adminGrid">${inp("rgP"+i,DG_RK[i]+" の確率",r.p)}${inp("rgX"+i,DG_RK[i]+" のごほうび（空＝はずれ）",r.txt,"text")}</div>`).join("");
+  return `<div class="aPane" data-p="rw" id="rwPane"><span class="paneTag all">🌐 全アカウント共通</span><div class="note">条件を満たすと、ごほうびが自動で「ごほうびBOX」に入ります（各条件は週に1回まで）。週の目標は、1週間に一度決めたら来週まで変えられません。</div><div class="sectionTitle">🎯 目標の下限</div><div class="adminGrid">${inp("rwMW","週の目標の下限（分）",c.minWeek||0)}${inp("rwMD","日の目標の下限（分）",c.minDay||0)}</div><div class="sectionTitle">🎁 ごほうび条件（8個まで）</div>${rules}<div class="sectionTitle">🎰 ごほうびがちゃ</div><div class="adminGrid">${inp("rgN","ガチャ名",g.name,"text")}${inp("rgC","1回に必要な券",g.cost)}</div>${rows}<div class="adminGrid" style="margin-top:12px"><button class="smallbtn" data-rwa="save">ごほうび設定を保存</button></div></div>`}
+const _sa3=showAdmin;showAdmin=function(){_sa3();if(!isOwner)return;const a=$d("admin"),t=a.querySelector("#aTabs");if(!t||$d("rwPane"))return;
+  t.insertAdjacentHTML("beforeend",'<button data-p="rw">🎁<br>ごほうび</button>');const anc=a.querySelector(".adminMainActions"),p=rwAdminHtml();anc?anc.insertAdjacentHTML("beforebegin",p):a.insertAdjacentHTML("beforeend",p)};
+$d("admin").addEventListener("click",async e=>{const b=e.target.closest("[data-rwa]");if(!b)return;const v=id=>$d(id).value,n=id=>Math.max(0,Math.floor(+v(id)||0));
+  const rules=[];for(let i=0;i<8;i++){const type=v("rwT"+i),txt=v("rwX"+i).trim().slice(0,20);if(type&&txt)rules.push({id:"r"+i,type,val:Math.max(1,n("rwV"+i)),d:v("rwD"+i),txt,rar:v("rwR"+i)})}
+  const rg={name:v("rgN").trim().slice(0,20)||"ごほうびがちゃ",cost:Math.max(1,n("rgC")),rows:DG_RK.map((_,i)=>({p:Math.max(0,+v("rgP"+i)||0),txt:v("rgX"+i).trim().slice(0,20)}))};
+  try{await updateCloud(s=>{s.rwCfg={rules,minWeek:n("rwMW"),minDay:n("rwMD")};s.rgCfg=rg;return s});b.textContent="✓ 保存しました"}catch(x){b.textContent="保存できませんでした"}});
 </script>
 <div id="authGate" class="show"><div class="gBox"><p>読み込み中…</p></div></div>
 <script>
 (function(){
   const $=id=>document.getElementById(id),body=document.body,det=$("detail"),adm=$("admin"),app=document.querySelector(".app");
-  const PAGES=["home","study","gacha","dg","box","ex","rw","rx"],OPEN={study:"statsBtn",rw:"rewardBoxBtn",rx:"materialBtn"},TITLE={dg:"⚔ ダンジョン",study:"📊 勉強",gacha:"🎰 ガチャ",box:"🎒 もちもの",ex:"🔨 クラフト",rw:"🎁 ごほうびBOX",rx:"🧩 素材・交換所"};
+  const PAGES=["home","study","gacha","dg","box","ex","rw","rx","rg"],OPEN={study:"statsBtn",rw:"rewardBoxBtn",rx:"materialBtn"},TITLE={dg:"⚔ ダンジョン",study:"📊 勉強",gacha:"🎰 ガチャ",box:"🎒 もちもの",ex:"🔨 クラフト",rw:"🎁 ごほうびBOX",rx:"🧩 素材・交換所",rg:"🎰 ごほうびがちゃ"};
   const T=[["home","🏠","ホーム"],["study","📊","勉強"],["gacha","🎰","ガチャ"],["dg","⚔","ダンジョン"],["box","🎒","もちもの"]];
   const gear=()=>{const g=document.createElement("button");g.className="gear";g.textContent="⚙";g.setAttribute("aria-label","管理");g.onclick=()=>$("adminBtn").click();return g};
   /* ページ共通の見出しバー（ホーム以外で表示） */
@@ -1542,12 +1579,12 @@ window.dgPanel=function(det,mode){dgDet=det;dgMode=mode;det.classList.add("open"
   const bar=document.createElement("nav");bar.className="tabbar";
   bar.innerHTML='<div class="in">'+T.map(t=>`<button class="tab${t[0]==="gacha"?" mid":""}" data-t="${t[0]}"><span>${t[1]}</span>${t[2]}</button>`).join("")+"</div>";
   const bg=document.createElement("div");bg.id="sheetBg";body.append(bg,bar);
-  const mark=p=>bar.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===(p==="ex"?"box":p==="rw"||p==="rx"?"home":p)));
+  const mark=p=>bar.querySelectorAll(".tab").forEach(b=>b.classList.toggle("on",b.dataset.t===(p==="ex"?"box":p==="rw"||p==="rx"||p==="rg"?"home":p)));
   function go(p){
     PAGES.forEach(x=>body.classList.toggle("pg-"+x,x===p));
     adm.classList.remove("open");det.classList.remove("open");det.innerHTML="";
     mark(p);document.querySelectorAll("#rewSeg button").forEach(b=>b.classList.toggle("on",b.dataset.s===p));$("pbTitle").textContent=TITLE[p]||"";
-    if((p==="box"||p==="ex")&&window.dgPanel)window.dgPanel(det,p==="box"?"inv":"craft");else if(OPEN[p])$(OPEN[p]).click();
+    if((p==="box"||p==="ex"||p==="rg")&&window.dgPanel)window.dgPanel(det,p==="box"?"inv":p==="ex"?"craft":"rg");else if(OPEN[p])$(OPEN[p]).click();
     window.scrollTo(0,0);
   }
   bar.onclick=e=>{const b=e.target.closest(".tab");if(b)go(b.dataset.t)};
